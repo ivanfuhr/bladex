@@ -61,7 +61,29 @@ php artisan vendor:publish --tag="bladex-assets"
 
 ## Usage
 
-<!-- Add a basic usage example here. -->
+Include the scripts directive in your layout before `</body>`:
+
+```blade
+@bladexScripts
+```
+
+No asset publishing is required. BladeX serves `bladex.js` from the package over HTTP, similar to Livewire. You may optionally publish static assets for CDN or serverless deployments:
+
+```bash
+php artisan vendor:publish --tag="bladex-assets"
+```
+
+When published files exist, `@bladexScripts` automatically points at `public/vendor/bladex/bladex.js` instead.
+
+In your application JavaScript, resolve a BladeX component root from a DOM node or identifier:
+
+```javascript
+const component = Bladex.find(document.querySelector('button'));
+
+const alert = Bladex.find('ui.alert');
+```
+
+`Bladex.find()` returns `{ element, identifier }` when a `[data-component-identifier]` root is found, or `null` otherwise.
 
 ## Changelog
 

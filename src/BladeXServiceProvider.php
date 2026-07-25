@@ -6,6 +6,7 @@ namespace Ivanfuhr\BladeX;
 
 use Illuminate\Support\ServiceProvider;
 use Ivanfuhr\BladeX\Console\Commands\BladeXCommand;
+use Ivanfuhr\BladeX\Support\FrontendAssets;
 use Ivanfuhr\BladeX\Support\RootElementAttributeInjector;
 use Ivanfuhr\BladeX\Support\RootElementValidator;
 
@@ -23,6 +24,8 @@ class BladeXServiceProvider extends ServiceProvider
         $this->app->singleton(RootElementValidator::class);
 
         $this->app->singleton(RootElementAttributeInjector::class);
+
+        $this->app->singleton(FrontendAssets::class);
     }
 
     /**
@@ -35,6 +38,8 @@ class BladeXServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'bladex');
 
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'bladex');
+
+        $this->app->make(FrontendAssets::class)->boot();
 
         if (! $this->app->runningInConsole()) {
             return;
@@ -53,7 +58,7 @@ class BladeXServiceProvider extends ServiceProvider
         ], ['bladex', 'bladex-lang']);
 
         $this->publishes([
-            __DIR__.'/../public' => public_path('vendor/bladex'),
+            __DIR__.'/../dist' => public_path('vendor/bladex'),
         ], ['bladex', 'bladex-assets']);
 
         $this->publishesMigrations([
