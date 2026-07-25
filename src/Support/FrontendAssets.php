@@ -26,7 +26,7 @@ class FrontendAssets
 
     public static function scriptPath(): string
     {
-        return '/vendor/bladex/bladex.js';
+        return '/bladex/bladex.js';
     }
 
     public static function javaScriptPath(): string
@@ -36,8 +36,17 @@ class FrontendAssets
 
     public static function returnJavaScriptAsFile(): BinaryFileResponse
     {
-        return response()->file(self::javaScriptPath(), [
+        $path = self::javaScriptPath();
+        $lastModified = filemtime($path);
+        $maxAge = 31536000;
+
+        return response()->file($path, [
             'Content-Type' => 'application/javascript; charset=utf-8',
+            'Cache-Control' => 'public, max-age='.$maxAge,
+            'Expires' => gmdate('D, d M Y H:i:s', time() + $maxAge).' GMT',
+            'Last-Modified' => $lastModified !== false
+                ? gmdate('D, d M Y H:i:s', $lastModified).' GMT'
+                : gmdate('D, d M Y H:i:s').' GMT',
         ]);
     }
 
@@ -59,16 +68,28 @@ class FrontendAssets
         return sprintf(
             '<script src="%s?v=%s" defer></script>',
             e($url),
-            e((string) config('bladex.version')),
+            e(static::scriptVersion()),
         );
+    }
+
+    public static function scriptVersion(): string
+    {
+        return static::hashJavaScriptAt(static::javaScriptPath());
+    }
+
+    public static function hashJavaScriptAt(string $path): string
+    {
+        if (! is_file($path)) {
+            return 'dev';
+        }
+
+        $hash = hash_file('sha256', $path);
+
+        return $hash === false ? 'dev' : substr($hash, 0, 8);
     }
 
     public static function scriptUrl(): string
     {
-        if (file_exists(public_path('vendor/bladex/bladex.js'))) {
-            return asset('vendor/bladex/bladex.js');
-        }
-
         return url(self::scriptPath());
     }
 }

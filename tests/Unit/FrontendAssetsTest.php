@@ -7,9 +7,15 @@ use Ivanfuhr\BladeX\Support\FrontendAssets;
 it('renders a deferred script tag pointing at the bladex asset', function () {
     $html = FrontendAssets::scripts();
 
-    expect($html)->toContain('vendor/bladex/bladex.js')
+    expect($html)->toContain('bladex/bladex.js')
         ->and($html)->toContain('defer')
-        ->and($html)->toContain('?v='.config('bladex.version').'"');
+        ->and($html)->toContain('?v='.FrontendAssets::scriptVersion().'"');
+});
+
+it('uses the same version hash as the served javascript file', function () {
+    expect(FrontendAssets::scriptVersion())->toBe(
+        FrontendAssets::hashJavaScriptAt(FrontendAssets::javaScriptPath()),
+    );
 });
 
 it('returns an empty string when scripts were already rendered', function () {

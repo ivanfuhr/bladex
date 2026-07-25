@@ -67,13 +67,13 @@ Include the scripts directive in your layout before `</body>`:
 @bladexScripts
 ```
 
-No asset publishing is required. BladeX serves `bladex.js` from the package over HTTP, similar to Livewire. You may optionally publish static assets for CDN or serverless deployments:
+No asset publishing is required. BladeX serves `bladex.js` from the `/bladex/bladex.js` route, similar to how Livewire serves its runtime script. The `?v=` query string is a short hash of that file and changes when the bundle changes.
 
-```bash
-php artisan vendor:publish --tag="bladex-assets"
+To point at a different URL (for example a published CDN asset), pass the `url` option:
+
+```blade
+@bladexScripts(['url' => asset('vendor/bladex/bladex.js')])
 ```
-
-When published files exist, `@bladexScripts` automatically points at `public/vendor/bladex/bladex.js` instead.
 
 In your application JavaScript, resolve a BladeX component root from a DOM node or identifier:
 

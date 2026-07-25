@@ -13,9 +13,7 @@ it('returns the same instance from the container', function () {
 });
 
 it('merges the package config', function () {
-    expect(config('bladex.placeholder'))->toBe('default')
-        ->and(config('bladex.version'))->toBeString()
-        ->and(config('bladex.version'))->not->toBe('');
+    expect(config('bladex.placeholder'))->toBe('default');
 });
 
 it('loads the package translations', function () {
