@@ -142,6 +142,31 @@ return bladex()->redirect(route('items.index'));
 
 The response is JSON with an `operations` array and an `X-BladeX: true` header.
 
+### HTTP status and response customization
+
+Use readable status helpers on the builder:
+
+```php
+return bladex()
+    ->refresh(new OrderForm($order))
+    ->unprocessableEntity();
+```
+
+Also available: `ok()`, `created()`, `accepted()`, `badRequest()`, `unauthorized()`, `forbidden()`, `notFound()`, `conflict()`, `tooManyRequests()`, `serverError()`, and `status($code)` for anything else.
+
+For headers, cookies, or any other `JsonResponse` API, use `usingResponse()` — BladeX does not reimplement `response()`:
+
+```php
+return bladex()
+    ->refresh(new OrderForm($order))
+    ->unprocessableEntity()
+    ->usingResponse(fn (JsonResponse $response) => $response
+        ->header('X-Request-Id', $requestId)
+        ->cookie('flash', 'saved', 60));
+```
+
+The JSON body stays `{ "operations": [...] }`. The fetch proxy applies operations whenever `X-BladeX: true` is present, even if the status is not 2xx — your JavaScript can still branch on `response.ok` for validation or error handling.
+
 ### Automatic `fetch` handling
 
 `@bladexScripts` installs a `fetch` proxy. When a response includes the `X-BladeX: true` header, BladeX applies the operations automatically — you do not need to call `Bladex.apply()` yourself.

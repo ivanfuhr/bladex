@@ -40,9 +40,14 @@ return bladex()->append(new ListContainer(), new ListItem($id));
 return bladex()->prepend(new ListContainer(), new ListItem($id));
 
 return bladex()->redirect(route('items.index'));
+
+return bladex()
+    ->refresh(new OrderForm($order))
+    ->unprocessableEntity()
+    ->usingResponse(fn (JsonResponse $response) => $response->header('X-Request-Id', (string) $request->headers->get('X-Request-Id')));
 ```
 
-4. On the client, use `fetch()` after `@bladexScripts` — operations apply automatically when the response has `X-BladeX: true`. Ensure the layout has `<meta name="csrf-token" content="{{ csrf_token() }}">` for POST requests.
+4. On the client, use `fetch()` after `@bladexScripts` — operations apply automatically when the response has `X-BladeX: true`, regardless of HTTP status. Ensure the layout has `<meta name="csrf-token" content="{{ csrf_token() }}">` for POST requests.
 
 Ensure each mounted instance has a unique `identifier()` when multiple copies of the same component appear on one page.
 

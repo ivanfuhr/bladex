@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Route;
 use Ivanfuhr\BladeX\BladeX;
 use Ivanfuhr\BladeX\Component;
@@ -89,6 +90,91 @@ it('returns a json response with the bladex header', function () {
                 ],
             ],
         ]);
+});
+
+it('returns a custom http status from the builder', function () {
+    $component = makeTestComponent('alert', '<div>Alert</div>');
+
+    $jsonResponse = bladex()
+        ->refresh($component)
+        ->created()
+        ->toResponse(request());
+
+    expect($jsonResponse->getStatusCode())->toBe(201)
+        ->and($jsonResponse->getData(true))->toBe([
+            'operations' => [
+                [
+                    'type' => 'refresh',
+                    'identifier' => 'alert',
+                    'html' => '<div data-component-identifier="alert">Alert</div>',
+                ],
+            ],
+        ]);
+});
+
+it('supports readable http status helpers', function () {
+    expect(bladex()->unprocessableEntity()->toResponse(request())->getStatusCode())->toBe(422)
+        ->and(bladex()->forbidden()->toResponse(request())->getStatusCode())->toBe(403)
+        ->and(bladex()->status(418)->toResponse(request())->getStatusCode())->toBe(418);
+});
+
+it('customizes the json response with usingResponse', function () {
+    $component = makeTestComponent('alert', '<div>Alert</div>');
+
+    $jsonResponse = bladex()
+        ->refresh($component)
+        ->usingResponse(fn (JsonResponse $response) => $response
+            ->header('X-Request-Id', 'abc-123')
+            ->header('X-Custom-Flag', 'yes'))
+        ->toResponse(request());
+
+    expect($jsonResponse->headers->get('X-Request-Id'))->toBe('abc-123')
+        ->and($jsonResponse->headers->get('X-Custom-Flag'))->toBe('yes')
+        ->and($jsonResponse->headers->get('X-BladeX'))->toBe('true');
+});
+
+it('chains operations with readable status and usingResponse', function () {
+    $component = makeTestComponent('form', '<form></form>');
+
+    $jsonResponse = bladex()
+        ->refresh($component)
+        ->unprocessableEntity()
+        ->usingResponse(fn (JsonResponse $response) => $response->header('X-Validation', 'failed'))
+        ->toResponse(request());
+
+    expect($jsonResponse->getStatusCode())->toBe(422)
+        ->and($jsonResponse->headers->get('X-Validation'))->toBe('failed')
+        ->and($jsonResponse->getData(true)['operations'])->toHaveCount(1);
+});
+
+it('attaches cookies through usingResponse', function () {
+    $jsonResponse = bladex()
+        ->redirect('/home')
+        ->usingResponse(fn (JsonResponse $response) => $response->cookie('flash', 'saved', 60))
+        ->toResponse(request());
+
+    $cookies = $jsonResponse->headers->getCookies();
+
+    expect($cookies)->toHaveCount(1)
+        ->and($cookies[0]->getName())->toBe('flash')
+        ->and($cookies[0]->getValue())->toBe('saved');
+});
+
+it('returns custom status and headers from an http route', function () {
+    Route::post('/_bladex/test/http', function () {
+        $component = makeTestComponent('demo.form', '<form></form>');
+
+        return bladex()
+            ->refresh($component)
+            ->unprocessableEntity()
+            ->usingResponse(fn (JsonResponse $response) => $response->header('X-Custom', 'yes'));
+    });
+
+    $this->post('/_bladex/test/http')
+        ->assertStatus(422)
+        ->assertHeader('X-Custom', 'yes')
+        ->assertHeader('X-BladeX', 'true')
+        ->assertJsonPath('operations.0.type', 'refresh');
 });
 
 it('exposes the bladex helper', function () {

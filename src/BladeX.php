@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ivanfuhr\BladeX;
 
+use Closure;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
 use Ivanfuhr\BladeX\Operations\AppendOperation;
@@ -14,6 +15,7 @@ use Ivanfuhr\BladeX\Operations\RefreshOperation;
 use Ivanfuhr\BladeX\Operations\RemoveOperation;
 use Ivanfuhr\BladeX\Operations\ReplaceOperation;
 use Ivanfuhr\BladeX\Support\ComponentRenderer;
+use Symfony\Component\HttpFoundation\Response;
 
 class BladeX implements Responsable
 {
@@ -21,6 +23,13 @@ class BladeX implements Responsable
      * @var list<Operation>
      */
     private array $operations = [];
+
+    private int $status = Response::HTTP_OK;
+
+    /**
+     * @var list<Closure(JsonResponse): JsonResponse>
+     */
+    private array $responseCustomizers = [];
 
     public function __construct(
         private readonly ComponentRenderer $componentRenderer,
@@ -82,6 +91,78 @@ class BladeX implements Responsable
         return $this;
     }
 
+    public function status(int $code): self
+    {
+        $this->status = $code;
+
+        return $this;
+    }
+
+    public function ok(): self
+    {
+        return $this->status(Response::HTTP_OK);
+    }
+
+    public function created(): self
+    {
+        return $this->status(Response::HTTP_CREATED);
+    }
+
+    public function accepted(): self
+    {
+        return $this->status(Response::HTTP_ACCEPTED);
+    }
+
+    public function badRequest(): self
+    {
+        return $this->status(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function unauthorized(): self
+    {
+        return $this->status(Response::HTTP_UNAUTHORIZED);
+    }
+
+    public function forbidden(): self
+    {
+        return $this->status(Response::HTTP_FORBIDDEN);
+    }
+
+    public function notFound(): self
+    {
+        return $this->status(Response::HTTP_NOT_FOUND);
+    }
+
+    public function conflict(): self
+    {
+        return $this->status(Response::HTTP_CONFLICT);
+    }
+
+    public function unprocessableEntity(): self
+    {
+        return $this->status(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    public function tooManyRequests(): self
+    {
+        return $this->status(Response::HTTP_TOO_MANY_REQUESTS);
+    }
+
+    public function serverError(): self
+    {
+        return $this->status(Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * @param  Closure(JsonResponse): JsonResponse  $callback
+     */
+    public function usingResponse(Closure $callback): self
+    {
+        $this->responseCustomizers[] = $callback;
+
+        return $this;
+    }
+
     /**
      * @return list<Operation>
      */
@@ -103,10 +184,19 @@ class BladeX implements Responsable
 
     public function toResponse($request): JsonResponse
     {
-        return response()
-            ->json([
-                'operations' => $this->toOperationArray(),
-            ])
+        $response = response()
+            ->json(
+                [
+                    'operations' => $this->toOperationArray(),
+                ],
+                $this->status,
+            )
             ->header('X-BladeX', 'true');
+
+        foreach ($this->responseCustomizers as $customizer) {
+            $response = $customizer($response);
+        }
+
+        return $response;
     }
 }
