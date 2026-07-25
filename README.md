@@ -123,13 +123,16 @@ use App\View\Components\ListItem;
 return bladex()->append(new ListContainer(), new ListItem($id));
 ```
 
-`append` inserts the rendered HTML of the second component immediately after the anchor’s root.
+`append` inserts the rendered HTML of `$content` as the last child inside the root of `$into`.
 
 ```php
+use App\View\Components\ListContainer;
+use App\View\Components\ListItem;
+
 return bladex()->prepend(new ListContainer(), new ListItem($id));
 ```
 
-`prepend` inserts the rendered HTML immediately before the anchor’s root.
+`prepend` inserts the rendered HTML as the first child inside the root of `$into`.
 
 ```php
 return bladex()->redirect(route('items.index'));
@@ -165,7 +168,7 @@ To disable the proxy (for example if you manage `fetch` yourself), pass:
 
 You can still use `Bladex.fetch()` explicitly, or call `Bladex.apply(payload)` when the proxy is off.
 
-Both `refresh` and `replace` update the matched root via `outerHTML`. `remove` calls `element.remove()`. `append` and `prepend` use `insertAdjacentHTML` after or before the anchor.
+Both `refresh` and `replace` update the matched root via `outerHTML`. `remove` calls `element.remove()`. `append` and `prepend` insert `$content` inside the root of `$into` (`beforeend` / `afterbegin`).
 
 If more than one element shares the same `data-component-identifier`, BladeX logs an error and skips the operation. Make `identifier()` unique per mounted instance when you render multiple copies of the same component (for example by including a model id in the identifier).
 

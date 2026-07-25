@@ -173,11 +173,11 @@ it('queues a remove operation with the component identifier', function () {
         ]);
 });
 
-it('queues an append operation after the anchor identifier', function () {
-    $anchor = makeTestComponent('list.container', '<ul></ul>');
-    $item = makeTestComponent('list.item', '<li>Item</li>');
+it('queues an append operation as the last child inside into', function () {
+    $into = makeTestComponent('list.container', '<ul></ul>');
+    $content = makeTestComponent('list.item', '<li>Item</li>');
 
-    $response = bladex()->append($anchor, $item);
+    $response = bladex()->append($into, $content);
 
     expect($response->toOperationArray()[0])->toBe([
         'type' => 'append',
@@ -186,11 +186,11 @@ it('queues an append operation after the anchor identifier', function () {
     ]);
 });
 
-it('queues a prepend operation before the anchor identifier', function () {
-    $anchor = makeTestComponent('list.container', '<ul></ul>');
-    $item = makeTestComponent('list.item', '<li>Item</li>');
+it('queues a prepend operation as the first child inside into', function () {
+    $into = makeTestComponent('list.container', '<ul></ul>');
+    $content = makeTestComponent('list.item', '<li>Item</li>');
 
-    $response = bladex()->prepend($anchor, $item);
+    $response = bladex()->prepend($into, $content);
 
     expect($response->toOperationArray()[0])->toBe([
         'type' => 'prepend',
@@ -210,12 +210,12 @@ it('queues a redirect operation with the url', function () {
 
 it('allows chaining dom operations with redirect', function () {
     $banner = makeTestComponent('ui.banner', '<div>Banner</div>');
-    $anchor = makeTestComponent('list.container', '<ul></ul>');
-    $item = makeTestComponent('list.item', '<li>Item</li>');
+    $into = makeTestComponent('list.container', '<ul></ul>');
+    $content = makeTestComponent('list.item', '<li>Item</li>');
 
     $response = bladex()
         ->remove($banner)
-        ->append($anchor, $item)
+        ->append($into, $content)
         ->redirect('/done');
 
     expect($response->toOperationArray())->toHaveCount(3)
@@ -242,10 +242,10 @@ it('returns remove operations from an http route', function () {
 
 it('returns append operations from an http route', function () {
     Route::post('/_bladex/test/append', function () {
-        $anchor = makeTestComponent('demo.list', '<ul></ul>');
-        $item = makeTestComponent('demo.item', '<li>Item</li>');
+        $into = makeTestComponent('demo.list', '<ul></ul>');
+        $content = makeTestComponent('demo.item', '<li>Item</li>');
 
-        return bladex()->append($anchor, $item);
+        return bladex()->append($into, $content);
     });
 
     $this->post('/_bladex/test/append')

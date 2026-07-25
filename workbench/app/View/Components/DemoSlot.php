@@ -15,6 +15,6 @@ class DemoSlot extends Component
 
     public function render(): string
     {
-        return '<div>Insertion anchor</div>';
+        return '<div>Into here</div>';
     }
 }

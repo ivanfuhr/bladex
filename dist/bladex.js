@@ -89,8 +89,8 @@
         return true;
     }
 
-    function insertComponent(identifier, html, position) {
-        const element = uniqueElementFromIdentifier(identifier);
+    function insertComponent(intoIdentifier, html, position) {
+        const element = uniqueElementFromIdentifier(intoIdentifier);
 
         if (element === null) {
             return false;
@@ -151,7 +151,7 @@
                 return false;
             }
 
-            return insertComponent(identifier, html, 'afterend');
+            return insertComponent(identifier, html, 'beforeend');
         }
 
         if (type === 'prepend') {
@@ -161,7 +161,7 @@
                 return false;
             }
 
-            return insertComponent(identifier, html, 'beforebegin');
+            return insertComponent(identifier, html, 'afterbegin');
         }
 
         return false;

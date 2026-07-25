@@ -30,8 +30,8 @@
     <section>
         <h2>Append / prepend</h2>
         <x-demo-slot />
-        <button type="button" id="append-demo">Append chip after slot</button>
-        <button type="button" id="prepend-demo">Prepend chip before slot</button>
+        <button type="button" id="append-demo">Append chip inside slot (end)</button>
+        <button type="button" id="prepend-demo">Prepend chip inside slot (start)</button>
     </section>
 
     <section>

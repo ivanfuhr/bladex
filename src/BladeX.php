@@ -55,21 +55,21 @@ class BladeX implements Responsable
         return $this;
     }
 
-    public function append(Component $anchor, Component $component): self
+    public function append(Component $into, Component $content): self
     {
         $this->operations[] = new AppendOperation(
-            $anchor->resolvedIdentifier(),
-            $this->componentRenderer->render($component),
+            $into->resolvedIdentifier(),
+            $this->componentRenderer->render($content),
         );
 
         return $this;
     }
 
-    public function prepend(Component $anchor, Component $component): self
+    public function prepend(Component $into, Component $content): self
     {
         $this->operations[] = new PrependOperation(
-            $anchor->resolvedIdentifier(),
-            $this->componentRenderer->render($component),
+            $into->resolvedIdentifier(),
+            $this->componentRenderer->render($content),
         );
 
         return $this;
