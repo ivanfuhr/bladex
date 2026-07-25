@@ -8,5 +8,8 @@ use Illuminate\View\Component as BaseComponent;
 
 abstract class Component extends BaseComponent
 {
-    //
+    /**
+     * @return string|array<int, string>
+     */
+    abstract public function identifier(): string|array;
 }
