@@ -6,6 +6,7 @@ namespace Ivanfuhr\BladeX;
 
 use Illuminate\Support\ServiceProvider;
 use Ivanfuhr\BladeX\Console\Commands\BladeXCommand;
+use Ivanfuhr\BladeX\Support\RootElementValidator;
 
 class BladeXServiceProvider extends ServiceProvider
 {
@@ -17,6 +18,8 @@ class BladeXServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/bladex.php', 'bladex');
 
         $this->app->singleton(BladeX::class);
+
+        $this->app->singleton(RootElementValidator::class);
     }
 
     /**
