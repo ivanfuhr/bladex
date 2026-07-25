@@ -221,6 +221,7 @@ Optional attribute:
 | Attribute | Behavior |
 |-----------|----------|
 | `data-trigger` | Events to listen for (default: `submit` on `<form>`, `click` elsewhere). Comma-separated list, with optional `once` and `delay:300ms` modifiers per event (for example `click once` or `change delay:200ms`). |
+| `data-loading` | Set automatically on the element while its declarative request is in flight (removed when the request finishes). On `<form>`, BladeX also disables that form’s controls until the request completes (fields that were already disabled stay disabled). Style with `[data-loading]` in your CSS. |
 
 Forms use `FormData` as the request body for mutating methods. Links and non-submit buttons call `preventDefault` on the configured trigger so navigation does not occur.
 

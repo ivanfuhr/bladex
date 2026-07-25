@@ -2,6 +2,7 @@ import {
     defaultTriggerSpec,
     requestBodyForElement,
     resolveRequest,
+    setDeclarativeLoadingState,
     shouldPreventDefault,
     ACTION_SELECTOR,
 } from './methods.js';
@@ -103,9 +104,11 @@ function performRequest(triggerElement, request) {
     }
 
     inFlightElements.add(triggerElement);
+    setDeclarativeLoadingState(triggerElement, true);
 
     return fetch(request.url, init).finally(function () {
         inFlightElements.delete(triggerElement);
+        setDeclarativeLoadingState(triggerElement, false);
     });
 }
 
@@ -129,11 +132,15 @@ function runTrigger(triggerElement, trigger, event) {
     }
 
     const execute = function () {
-        performRequest(triggerElement, request).then(function () {
-            if (trigger.once) {
-                onceTriggeredElements.add(triggerElement);
-            }
-        });
+        performRequest(triggerElement, request)
+            .then(function () {
+                if (trigger.once) {
+                    onceTriggeredElements.add(triggerElement);
+                }
+            })
+            .catch(function (error) {
+                console.error('[Bladex] Declarative request failed.', error);
+            });
     };
 
     if (trigger.delayMs > 0) {
