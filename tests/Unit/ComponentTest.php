@@ -37,6 +37,7 @@ it('allows identifier to return a string', function () {
     };
 
     expect($component->identifier())->toBe('alert');
+    expect($component->resolvedIdentifier())->toBe('alert');
 });
 
 it('allows identifier to return an array of strings', function () {
@@ -54,4 +55,5 @@ it('allows identifier to return an array of strings', function () {
     };
 
     expect($component->identifier())->toBe(['ui', 'alert']);
+    expect($component->resolvedIdentifier())->toBe('ui.alert');
 });

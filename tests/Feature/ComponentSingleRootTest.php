@@ -50,7 +50,8 @@ it('allows script siblings when rendering a component', function () {
 
     $html = BladeCompiler::renderComponent($component);
 
-    expect($html)->toContain('First element');
+    expect($html)->toContain('First element')
+        ->and($html)->toContain('data-component-identifier="script-sibling"');
 });
 
 it('does not validate multiple roots when app debug is disabled', function () {

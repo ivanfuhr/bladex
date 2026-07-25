@@ -22,12 +22,17 @@ class ValidatingComponentHtml implements Htmlable
         private readonly array $data,
         private readonly Component $component,
         private readonly RootElementValidator $validator,
+        private readonly RootElementAttributeInjector $attributeInjector,
         private readonly ViewFactory $viewFactory,
     ) {}
 
     public function toHtml(): string
     {
         $html = $this->renderView();
+
+        $html = $this->attributeInjector->inject($html, [
+            'data-component-identifier' => $this->component->resolvedIdentifier(),
+        ], $this->component);
 
         if (config('bladex.enforce_single_root_element', true) && config('app.debug')) {
             $this->validator->assertSingleRoot($this->component, $html);

@@ -7,12 +7,12 @@ namespace Ivanfuhr\BladeX\Exceptions;
 use Exception;
 use Ivanfuhr\BladeX\Component;
 
-class MultipleRootElementsDetectedException extends Exception
+class RootElementMissingException extends Exception
 {
     public function __construct(Component $component)
     {
         parent::__construct(sprintf(
-            'BladeX components must have a single root HTML element. Multiple root elements detected for component: [%s].',
+            'BladeX components must render a single root HTML element. No root HTML element found for component: [%s].',
             $component->resolvedIdentifier(),
         ));
     }

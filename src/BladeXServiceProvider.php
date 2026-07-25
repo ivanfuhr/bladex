@@ -6,6 +6,7 @@ namespace Ivanfuhr\BladeX;
 
 use Illuminate\Support\ServiceProvider;
 use Ivanfuhr\BladeX\Console\Commands\BladeXCommand;
+use Ivanfuhr\BladeX\Support\RootElementAttributeInjector;
 use Ivanfuhr\BladeX\Support\RootElementValidator;
 
 class BladeXServiceProvider extends ServiceProvider
@@ -20,6 +21,8 @@ class BladeXServiceProvider extends ServiceProvider
         $this->app->singleton(BladeX::class);
 
         $this->app->singleton(RootElementValidator::class);
+
+        $this->app->singleton(RootElementAttributeInjector::class);
     }
 
     /**

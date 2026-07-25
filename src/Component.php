@@ -10,6 +10,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component as BaseComponent;
+use Ivanfuhr\BladeX\Support\RootElementAttributeInjector;
 use Ivanfuhr\BladeX\Support\RootElementValidator;
 use Ivanfuhr\BladeX\Support\ValidatingComponentHtml;
 
@@ -24,6 +25,17 @@ abstract class Component extends BaseComponent
      * @return string|array<int, string>
      */
     abstract public function identifier(): string|array;
+
+    public function resolvedIdentifier(): string
+    {
+        $identifier = $this->identifier();
+
+        if (is_array($identifier)) {
+            return implode('.', $identifier);
+        }
+
+        return $identifier;
+    }
 
     /**
      * @return Closure(array<string, mixed>=): ValidatingComponentHtml
@@ -48,8 +60,14 @@ abstract class Component extends BaseComponent
             $data,
             $this,
             $this->rootElementValidator(),
+            $this->rootElementAttributeInjector(),
             $this->viewFactory(),
         );
+    }
+
+    protected function rootElementAttributeInjector(): RootElementAttributeInjector
+    {
+        return Container::getInstance()->make(RootElementAttributeInjector::class);
     }
 
     protected function rootElementValidator(): RootElementValidator
