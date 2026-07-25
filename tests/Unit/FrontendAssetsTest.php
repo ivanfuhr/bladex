@@ -31,3 +31,11 @@ it('allows overriding the script url through options', function () {
 
     expect($html)->toContain('https://cdn.example/bladex.js');
 });
+
+it('can disable the fetch proxy through script options', function () {
+    app(FrontendAssets::class)->hasRenderedScripts = false;
+
+    $html = FrontendAssets::scripts(['fetchProxy' => false]);
+
+    expect($html)->toContain('data-bladex-fetch-proxy="false"');
+});

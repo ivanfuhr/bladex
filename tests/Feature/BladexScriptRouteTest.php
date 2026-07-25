@@ -15,5 +15,7 @@ it('serves bladex.js from the package without publishing assets', function () {
 
     $content = $response->streamedContent();
 
-    expect($content)->toContain('window.Bladex');
+    expect($content)->toContain('window.Bladex')
+        ->and($content)->toContain('apply')
+        ->and($content)->toContain('installFetchProxy');
 });

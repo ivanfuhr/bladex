@@ -64,11 +64,14 @@ class FrontendAssets
         $instance->hasRenderedScripts = true;
 
         $url = $options['url'] ?? static::scriptUrl();
+        $fetchProxy = $options['fetchProxy'] ?? true;
+        $attributes = $fetchProxy === false ? ' data-bladex-fetch-proxy="false"' : '';
 
         return sprintf(
-            '<script src="%s?v=%s" defer></script>',
+            '<script src="%s?v=%s" defer%s></script>',
             e($url),
             e(static::scriptVersion()),
+            $attributes,
         );
     }
 

@@ -6,6 +6,7 @@ namespace Ivanfuhr\BladeX;
 
 use Illuminate\Support\ServiceProvider;
 use Ivanfuhr\BladeX\Console\Commands\BladeXCommand;
+use Ivanfuhr\BladeX\Support\ComponentRenderer;
 use Ivanfuhr\BladeX\Support\FrontendAssets;
 use Ivanfuhr\BladeX\Support\RootElementAttributeInjector;
 use Ivanfuhr\BladeX\Support\RootElementValidator;
@@ -17,9 +18,13 @@ class BladeXServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        require_once __DIR__.'/helpers.php';
+
         $this->mergeConfigFrom(__DIR__.'/../config/bladex.php', 'bladex');
 
-        $this->app->singleton(BladeX::class);
+        $this->app->bind(BladeX::class);
+
+        $this->app->singleton(ComponentRenderer::class);
 
         $this->app->singleton(RootElementValidator::class);
 

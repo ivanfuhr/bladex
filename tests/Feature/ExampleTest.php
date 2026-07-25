@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use Ivanfuhr\BladeX\BladeX;
 
-it('resolves the singleton', function () {
+it('resolves bladex from the container', function () {
     expect(app(BladeX::class))->toBeInstanceOf(BladeX::class);
 });
 
-it('returns the same instance from the container', function () {
-    expect(app(BladeX::class))->toBe(app(BladeX::class));
+it('resolves a fresh bladex instance on each container resolution', function () {
+    expect(app(BladeX::class))->not->toBe(app(BladeX::class));
 });
 
 it('merges the package config', function () {

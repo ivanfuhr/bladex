@@ -20,6 +20,8 @@ You can install the package via Composer:
 composer require ivanfuhr/bladex
 ```
 
+After installing or updating the package (especially from a path repository), run `composer dump-autoload` in your application so Composer registers the `bladex()` helper. If your editor still reports an unknown function, restart the PHP language server.
+
 You may publish all of the package's resources at once:
 
 ```bash
@@ -84,6 +86,59 @@ const alert = Bladex.find('ui.alert');
 ```
 
 `Bladex.find()` returns `{ element, identifier }` when a `[data-component-identifier]` root is found, or `null` otherwise.
+
+## Operations
+
+Return BladeX operations from a route or controller to update the page without CSS selectors in PHP. Each operation targets a component by the `identifier()` of the `Component` instance you pass in.
+
+```php
+use App\View\Components\RandomSentence;
+
+return bladex()->refresh(new RandomSentence());
+```
+
+`refresh` re-renders the given component and updates the existing root with the same `resolvedIdentifier()` on the page.
+
+```php
+use App\View\Components\LoadingSpinner;
+use App\View\Components\RandomSentence;
+
+return bladex()->replace(new LoadingSpinner(), new RandomSentence());
+```
+
+`replace` finds the root for `$from` and swaps it with the HTML rendered from `$to`. The DOM will then expose the identifier of `$to`.
+
+The response is JSON with an `operations` array and an `X-BladeX: true` header.
+
+### Automatic `fetch` handling
+
+`@bladexScripts` installs a `fetch` proxy. When a response includes the `X-BladeX: true` header, BladeX applies the operations automatically — you do not need to call `Bladex.apply()` yourself.
+
+Put a CSRF meta tag in your layout (Laravel’s default `app` layout already does):
+
+```html
+<meta name="csrf-token" content="{{ csrf_token() }}">
+```
+
+Then a normal `fetch` is enough:
+
+```javascript
+fetch('/your-endpoint', { method: 'POST' });
+```
+
+The proxy also sets `Accept: application/json`, `X-Requested-With: XMLHttpRequest`, and `X-CSRF-TOKEN` (from the meta tag) on mutating requests when those headers are missing.
+
+To disable the proxy (for example if you manage `fetch` yourself), pass:
+
+```blade
+@bladexScripts(['fetchProxy' => false])
+```
+
+You can still use `Bladex.fetch()` explicitly, or call `Bladex.apply(payload)` when the proxy is off.
+
+Both `refresh` and `replace` update the matched root via `outerHTML` in v1.
+
+If more than one element shares the same `data-component-identifier`, BladeX logs an error and skips the operation. Make `identifier()` unique per mounted instance when you render multiple copies of the same component (for example by including a model id in the identifier).
 
 ## Changelog
 
