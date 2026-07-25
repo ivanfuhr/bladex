@@ -18,7 +18,8 @@
     ],
     "require": {
         "php": "^8.3",
-        "illuminate/support": "^12.0||^13.0"
+        "illuminate/support": "^12.0||^13.0",
+        "illuminate/view": "^12.0||^13.0"
     },
     "require-dev": {
         "larastan/larastan": "^3.9",
@@ -32,12 +33,12 @@
     },
     "autoload": {
         "psr-4": {
-            "BladeX\\BladeX\\": "src/"
+            "Ivanfuhr\\BladeX\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "BladeX\\BladeX\\Tests\\": "tests/",
+            "Ivanfuhr\\BladeX\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/",
             "Workbench\\Database\\Factories\\": "workbench/database/factories/",
             "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
@@ -87,10 +88,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "BladeX\\BladeX\\BladeXServiceProvider"
+                "Ivanfuhr\\BladeX\\BladeXServiceProvider"
             ],
             "aliases": {
-                "BladeX": "BladeX\\BladeX\\Facades\\BladeX"
+                "BladeX": "Ivanfuhr\\BladeX\\Facades\\BladeX"
             }
         }
     },

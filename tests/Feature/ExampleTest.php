@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use BladeX\BladeX\BladeX;
+use Ivanfuhr\BladeX\BladeX;
 
 it('resolves the singleton', function () {
     expect(app(BladeX::class))->toBeInstanceOf(BladeX::class);

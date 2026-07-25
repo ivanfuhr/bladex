@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace BladeX\BladeX\Facades;
+namespace Ivanfuhr\BladeX\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \BladeX\BladeX\BladeX
+ * @see \Ivanfuhr\BladeX\BladeX
  */
 class BladeX extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return \BladeX\BladeX\BladeX::class;
+        return \Ivanfuhr\BladeX\BladeX::class;
     }
 }

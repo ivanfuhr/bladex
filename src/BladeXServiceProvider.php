@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace BladeX\BladeX;
+namespace Ivanfuhr\BladeX;
 
-use BladeX\BladeX\Console\Commands\BladeXCommand;
 use Illuminate\Support\ServiceProvider;
+use Ivanfuhr\BladeX\Console\Commands\BladeXCommand;
 
 class BladeXServiceProvider extends ServiceProvider
 {

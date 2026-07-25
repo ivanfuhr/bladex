@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BladeX\BladeX;
+namespace Ivanfuhr\BladeX;
 
 class BladeX
 {

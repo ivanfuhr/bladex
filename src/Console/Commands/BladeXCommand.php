@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BladeX\BladeX\Console\Commands;
+namespace Ivanfuhr\BladeX\Console\Commands;
 
 use Illuminate\Console\Command;
 

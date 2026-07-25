@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace BladeX\BladeX\Tests;
+namespace Ivanfuhr\BladeX\Tests;
 
-use BladeX\BladeX\BladeXServiceProvider;
+use Ivanfuhr\BladeX\BladeXServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra
