@@ -56,7 +56,11 @@ class FrontendAssets
 
         $url = $options['url'] ?? static::scriptUrl();
 
-        return sprintf('<script src="%s" defer></script>', e($url));
+        return sprintf(
+            '<script src="%s?v=%s" defer></script>',
+            e($url),
+            e((string) config('bladex.version')),
+        );
     }
 
     public static function scriptUrl(): string

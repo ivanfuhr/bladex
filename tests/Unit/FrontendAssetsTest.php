@@ -8,7 +8,8 @@ it('renders a deferred script tag pointing at the bladex asset', function () {
     $html = FrontendAssets::scripts();
 
     expect($html)->toContain('vendor/bladex/bladex.js')
-        ->and($html)->toContain('defer');
+        ->and($html)->toContain('defer')
+        ->and($html)->toContain('?v='.config('bladex.version').'"');
 });
 
 it('returns an empty string when scripts were already rendered', function () {
