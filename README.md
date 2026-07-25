@@ -193,6 +193,39 @@ To disable the proxy (for example if you manage `fetch` yourself), pass:
 
 You can still use `Bladex.fetch()` explicitly, or call `Bladex.apply(payload)` when the proxy is off.
 
+### Declarative actions
+
+After `@bladexScripts`, you can trigger BladeX requests from HTML attributes instead of writing `fetch()` or `onclick` handlers. The server still decides which components to update through `bladex()` operations and `identifier()` — there is no `hx-target` in the markup.
+
+Put exactly one method attribute with the request URL on the element:
+
+| Attribute | HTTP method |
+|-----------|-------------|
+| `data-get` | GET |
+| `data-post` | POST |
+| `data-put` | PUT |
+| `data-patch` | PATCH |
+| `data-delete` | DELETE |
+
+Optional attribute:
+
+| Attribute | Behavior |
+|-----------|----------|
+| `data-trigger` | Events to listen for (default: `submit` on `<form>`, `click` elsewhere). Comma-separated list, with optional `once` and `delay:300ms` modifiers per event (for example `click once` or `change delay:200ms`). |
+
+Forms use `FormData` as the request body for mutating methods. Links and non-submit buttons call `preventDefault` on the configured trigger so navigation does not occur.
+
+Example:
+
+```blade
+<button
+    type="button"
+    data-post="{{ route('items.store') }}"
+>
+    Add item
+</button>
+```
+
 Both `refresh` and `replace` update the matched root via `outerHTML`. `remove` calls `element.remove()`. `append` and `prepend` insert `$content` inside the root of `$into` (`beforeend` / `afterbegin`).
 
 If more than one element shares the same `data-component-identifier`, BladeX logs an error and skips the operation. Make `identifier()` unique per mounted instance when you render multiple copies of the same component (for example by including a model id in the identifier).

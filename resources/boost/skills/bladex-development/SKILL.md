@@ -47,7 +47,7 @@ return bladex()
     ->usingResponse(fn (JsonResponse $response) => $response->header('X-Request-Id', (string) $request->headers->get('X-Request-Id')));
 ```
 
-4. On the client, use `fetch()` after `@bladexScripts` — operations apply automatically when the response has `X-BladeX: true`, regardless of HTTP status. Ensure the layout has `<meta name="csrf-token" content="{{ csrf_token() }}">` for POST requests.
+4. On the client, prefer declarative attributes after `@bladexScripts` (for example `data-post="{{ route('items.refresh') }}"` on a button). Operations apply automatically when the response has `X-BladeX: true`, regardless of HTTP status. You can still call `fetch()` manually if needed. Ensure the layout has `<meta name="csrf-token" content="{{ csrf_token() }}">` for POST requests.
 
 Ensure each mounted instance has a unique `identifier()` when multiple copies of the same component appear on one page.
 
@@ -59,7 +59,7 @@ Read before executing:
 
 ## Examples
 
-- POST endpoint returns `bladex()->refresh($component)`; `fetch(url, { method: 'POST' })` applies operations via the fetch proxy.
+- POST endpoint returns `bladex()->refresh($component)`; `data-post` on a button (or `fetch(url, { method: 'POST' })`) applies operations via the fetch proxy.
 
 ## Anti-patterns
 

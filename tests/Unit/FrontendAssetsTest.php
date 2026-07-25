@@ -37,5 +37,5 @@ it('can disable the fetch proxy through script options', function () {
 
     $html = FrontendAssets::scripts(['fetchProxy' => false]);
 
-    expect($html)->toContain('data-bladex-fetch-proxy="false"');
+    expect($html)->toContain('data-fetch-proxy="false"');
 });

@@ -65,7 +65,7 @@ class FrontendAssets
 
         $url = $options['url'] ?? static::scriptUrl();
         $fetchProxy = $options['fetchProxy'] ?? true;
-        $attributes = $fetchProxy === false ? ' data-bladex-fetch-proxy="false"' : '';
+        $attributes = $fetchProxy === false ? ' data-fetch-proxy="false"' : '';
 
         return sprintf(
             '<script src="%s?v=%s" defer%s></script>',
