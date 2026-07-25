@@ -236,7 +236,7 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Contributing
 
-Thank you for considering contributing to BladeX! Please review our [contributing guide](.github/CONTRIBUTING.md) to get started.
+Thank you for considering contributing to BladeX! Please review our [contributing guide](.github/CONTRIBUTING.md) to get started. Package development requires Node.js: run `npm ci && npm run build` after cloning so `packages/bladex/dist/bladex.js` exists for PHP feature tests and the workbench.
 
 ## Security Vulnerabilities
 

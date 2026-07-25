@@ -1,0 +1,18 @@
+{
+    "type": "module",
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ],
+    "scripts": {
+        "build": "node ./scripts/build.js",
+        "watch": "node ./scripts/build.js --watch",
+        "test": "vitest run",
+        "test:watch": "vitest"
+    },
+    "devDependencies": {
+        "esbuild": "^0.25.0",
+        "jsdom": "^26.1.0",
+        "vitest": "^3.2.4"
+    }
+}

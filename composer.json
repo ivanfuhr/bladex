@@ -55,7 +55,15 @@
         "prepare": [
             "@php vendor/bin/testbench package:discover --ansi"
         ],
+        "build:js": [
+            "npm run build"
+        ],
+        "pre-package-archive": [
+            "npm ci",
+            "@build:js"
+        ],
         "build": [
+            "@build:js",
             "@php vendor/bin/testbench workbench:build --ansi"
         ],
         "serve": [
@@ -79,6 +87,7 @@
             "vendor/bin/pest --parallel"
         ],
         "test": [
+            "@build:js",
             "@analyse",
             "@lint:check",
             "@test:types",

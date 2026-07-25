@@ -12,7 +12,11 @@ This repository is a Laravel package. Keep the package focused, idiomatic, and e
 
 ## Quick Commands
 
-- Full validation: `composer test`
+- Full validation: `composer test` (runs `npm run build` first)
+- JavaScript build: `npm run build` or `composer build:js`
+- JavaScript unit tests: `npm test` (runs `npm run build` first)
+- JavaScript build: `npm run build` or `composer build:js`
+- JavaScript unit tests: `npm test`
 - Formatting check: `composer lint:check`
 - Static analysis: `composer analyse`
 - Pest tests: `composer test:unit`

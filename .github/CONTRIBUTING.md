@@ -24,7 +24,11 @@ Clone your fork, then install the dev dependencies:
 
 ```bash
 composer install
+npm ci
+npm run build
 ```
+
+The browser runtime lives under `packages/bladex/src/` and is bundled to `packages/bladex/dist/bladex.js` with esbuild. That file is not committed; generate it with `npm run build` (or `composer build:js`) before running the test suite locally.
 
 ## Lint
 
@@ -36,7 +40,13 @@ composer lint
 
 ## Tests
 
-Run all tests:
+Run JavaScript unit tests:
+
+```bash
+npm test
+```
+
+Run all package checks (builds JavaScript, then PHP analysis, lint, and Pest):
 
 ```bash
 composer test

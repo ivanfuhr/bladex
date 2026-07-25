@@ -63,7 +63,7 @@ class BladeXServiceProvider extends ServiceProvider
         ], ['bladex', 'bladex-lang']);
 
         $this->publishes([
-            __DIR__.'/../dist' => public_path('vendor/bladex'),
+            __DIR__.'/../packages/bladex/dist' => public_path('vendor/bladex'),
         ], ['bladex', 'bladex-assets']);
 
         $this->publishesMigrations([

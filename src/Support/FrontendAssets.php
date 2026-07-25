@@ -31,7 +31,7 @@ class FrontendAssets
 
     public static function javaScriptPath(): string
     {
-        return dirname(__DIR__, 2).'/dist/bladex.js';
+        return dirname(__DIR__, 2).'/packages/bladex/dist/bladex.js';
     }
 
     public static function returnJavaScriptAsFile(): BinaryFileResponse

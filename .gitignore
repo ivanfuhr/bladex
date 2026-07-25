@@ -1,5 +1,7 @@
 /vendor
 /build
+/node_modules
+/packages/bladex/dist
 /.phpunit.cache
 /.phpunit.result.cache
 /coverage
