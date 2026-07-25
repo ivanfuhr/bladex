@@ -108,6 +108,35 @@ return bladex()->replace(new LoadingSpinner(), new RandomSentence());
 
 `replace` finds the root for `$from` and swaps it with the HTML rendered from `$to`. The DOM will then expose the identifier of `$to`.
 
+```php
+use App\View\Components\OldBanner;
+
+return bladex()->remove(new OldBanner());
+```
+
+`remove` deletes the root that matches the given component’s `resolvedIdentifier()`.
+
+```php
+use App\View\Components\ListContainer;
+use App\View\Components\ListItem;
+
+return bladex()->append(new ListContainer(), new ListItem($id));
+```
+
+`append` inserts the rendered HTML of the second component immediately after the anchor’s root.
+
+```php
+return bladex()->prepend(new ListContainer(), new ListItem($id));
+```
+
+`prepend` inserts the rendered HTML immediately before the anchor’s root.
+
+```php
+return bladex()->redirect(route('items.index'));
+```
+
+`redirect` navigates the browser with `location.assign()`. Operations run in order; put `redirect` last so earlier DOM updates are not skipped.
+
 The response is JSON with an `operations` array and an `X-BladeX: true` header.
 
 ### Automatic `fetch` handling
@@ -136,7 +165,7 @@ To disable the proxy (for example if you manage `fetch` yourself), pass:
 
 You can still use `Bladex.fetch()` explicitly, or call `Bladex.apply(payload)` when the proxy is off.
 
-Both `refresh` and `replace` update the matched root via `outerHTML` in v1.
+Both `refresh` and `replace` update the matched root via `outerHTML`. `remove` calls `element.remove()`. `append` and `prepend` use `insertAdjacentHTML` after or before the anchor.
 
 If more than one element shares the same `data-component-identifier`, BladeX logs an error and skips the operation. Make `identifier()` unique per mounted instance when you render multiple copies of the same component (for example by including a model id in the identifier).
 

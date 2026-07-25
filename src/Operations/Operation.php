@@ -7,7 +7,7 @@ namespace Ivanfuhr\BladeX\Operations;
 interface Operation
 {
     /**
-     * @return array{type: string, identifier: string, html: string}
+     * @return array<string, string>
      */
     public function toArray(): array;
 }

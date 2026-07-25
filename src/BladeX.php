@@ -6,8 +6,12 @@ namespace Ivanfuhr\BladeX;
 
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
+use Ivanfuhr\BladeX\Operations\AppendOperation;
 use Ivanfuhr\BladeX\Operations\Operation;
+use Ivanfuhr\BladeX\Operations\PrependOperation;
+use Ivanfuhr\BladeX\Operations\RedirectOperation;
 use Ivanfuhr\BladeX\Operations\RefreshOperation;
+use Ivanfuhr\BladeX\Operations\RemoveOperation;
 use Ivanfuhr\BladeX\Operations\ReplaceOperation;
 use Ivanfuhr\BladeX\Support\ComponentRenderer;
 
@@ -42,6 +46,42 @@ class BladeX implements Responsable
         return $this;
     }
 
+    public function remove(Component $component): self
+    {
+        $this->operations[] = new RemoveOperation(
+            $component->resolvedIdentifier(),
+        );
+
+        return $this;
+    }
+
+    public function append(Component $anchor, Component $component): self
+    {
+        $this->operations[] = new AppendOperation(
+            $anchor->resolvedIdentifier(),
+            $this->componentRenderer->render($component),
+        );
+
+        return $this;
+    }
+
+    public function prepend(Component $anchor, Component $component): self
+    {
+        $this->operations[] = new PrependOperation(
+            $anchor->resolvedIdentifier(),
+            $this->componentRenderer->render($component),
+        );
+
+        return $this;
+    }
+
+    public function redirect(string $url): self
+    {
+        $this->operations[] = new RedirectOperation($url);
+
+        return $this;
+    }
+
     /**
      * @return list<Operation>
      */
@@ -51,7 +91,7 @@ class BladeX implements Responsable
     }
 
     /**
-     * @return list<array{type: string, identifier: string, html: string}>
+     * @return list<array<string, string>>
      */
     public function toOperationArray(): array
     {

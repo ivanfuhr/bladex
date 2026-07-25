@@ -160,3 +160,100 @@ it('returns replace operations from an http route', function () {
         ->assertJsonPath('operations.0.identifier', 'demo.spinner')
         ->assertJsonPath('operations.0.html', '<div data-component-identifier="demo.content">Content</div>');
 });
+
+it('queues a remove operation with the component identifier', function () {
+    $component = makeTestComponent('ui.banner', '<div>Banner</div>');
+
+    $response = bladex()->remove($component);
+
+    expect($response->operations())->toHaveCount(1)
+        ->and($response->toOperationArray()[0])->toBe([
+            'type' => 'remove',
+            'identifier' => 'ui.banner',
+        ]);
+});
+
+it('queues an append operation after the anchor identifier', function () {
+    $anchor = makeTestComponent('list.container', '<ul></ul>');
+    $item = makeTestComponent('list.item', '<li>Item</li>');
+
+    $response = bladex()->append($anchor, $item);
+
+    expect($response->toOperationArray()[0])->toBe([
+        'type' => 'append',
+        'identifier' => 'list.container',
+        'html' => '<li data-component-identifier="list.item">Item</li>',
+    ]);
+});
+
+it('queues a prepend operation before the anchor identifier', function () {
+    $anchor = makeTestComponent('list.container', '<ul></ul>');
+    $item = makeTestComponent('list.item', '<li>Item</li>');
+
+    $response = bladex()->prepend($anchor, $item);
+
+    expect($response->toOperationArray()[0])->toBe([
+        'type' => 'prepend',
+        'identifier' => 'list.container',
+        'html' => '<li data-component-identifier="list.item">Item</li>',
+    ]);
+});
+
+it('queues a redirect operation with the url', function () {
+    $response = bladex()->redirect('/dashboard');
+
+    expect($response->toOperationArray()[0])->toBe([
+        'type' => 'redirect',
+        'url' => '/dashboard',
+    ]);
+});
+
+it('allows chaining dom operations with redirect', function () {
+    $banner = makeTestComponent('ui.banner', '<div>Banner</div>');
+    $anchor = makeTestComponent('list.container', '<ul></ul>');
+    $item = makeTestComponent('list.item', '<li>Item</li>');
+
+    $response = bladex()
+        ->remove($banner)
+        ->append($anchor, $item)
+        ->redirect('/done');
+
+    expect($response->toOperationArray())->toHaveCount(3)
+        ->and($response->toOperationArray()[0]['type'])->toBe('remove')
+        ->and($response->toOperationArray()[1]['type'])->toBe('append')
+        ->and($response->toOperationArray()[2])->toBe([
+            'type' => 'redirect',
+            'url' => '/done',
+        ]);
+});
+
+it('returns remove operations from an http route', function () {
+    Route::post('/_bladex/test/remove', function () {
+        $component = makeTestComponent('demo.banner', '<div>Banner</div>');
+
+        return bladex()->remove($component);
+    });
+
+    $this->post('/_bladex/test/remove')
+        ->assertOk()
+        ->assertJsonPath('operations.0.type', 'remove')
+        ->assertJsonPath('operations.0.identifier', 'demo.banner');
+});
+
+it('returns append operations from an http route', function () {
+    Route::post('/_bladex/test/append', function () {
+        $anchor = makeTestComponent('demo.list', '<ul></ul>');
+        $item = makeTestComponent('demo.item', '<li>Item</li>');
+
+        return bladex()->append($anchor, $item);
+    });
+
+    $this->post('/_bladex/test/append')
+        ->assertOk()
+        ->assertJsonPath('operations.0.type', 'append')
+        ->assertJsonPath('operations.0.identifier', 'demo.list')
+        ->assertJsonPath(
+            'operations.0.html',
+            '<li data-component-identifier="demo.item">Item</li>',
+        );
+});

@@ -32,18 +32,16 @@
     }
 
     function componentFromIdentifier(identifier) {
-        const elements = elementsFromIdentifier(identifier);
+        const element = uniqueElementFromIdentifier(identifier);
 
-        if (elements.length !== 1) {
+        if (element === null) {
             return null;
         }
-
-        const element = elements[0];
 
         return { element, identifier };
     }
 
-    function swapComponent(identifier, html) {
+    function uniqueElementFromIdentifier(identifier) {
         const elements = elementsFromIdentifier(identifier);
 
         if (elements.length === 0) {
@@ -52,7 +50,7 @@
                 identifier,
             );
 
-            return false;
+            return null;
         }
 
         if (elements.length > 1) {
@@ -61,10 +59,48 @@
                 identifier,
             );
 
+            return null;
+        }
+
+        return elements[0];
+    }
+
+    function swapComponent(identifier, html) {
+        const element = uniqueElementFromIdentifier(identifier);
+
+        if (element === null) {
             return false;
         }
 
-        elements[0].outerHTML = html;
+        element.outerHTML = html;
+
+        return true;
+    }
+
+    function removeComponent(identifier) {
+        const element = uniqueElementFromIdentifier(identifier);
+
+        if (element === null) {
+            return false;
+        }
+
+        element.remove();
+
+        return true;
+    }
+
+    function insertComponent(identifier, html, position) {
+        const element = uniqueElementFromIdentifier(identifier);
+
+        if (element === null) {
+            return false;
+        }
+
+        if (typeof html !== 'string') {
+            return false;
+        }
+
+        element.insertAdjacentHTML(position, html);
 
         return true;
     }
@@ -75,22 +111,60 @@
         }
 
         const type = operation.type;
-        const identifier = operation.identifier;
-        const html = operation.html;
 
-        if (type !== 'refresh' && type !== 'replace') {
-            return false;
+        if (type === 'redirect') {
+            const url = operation.url;
+
+            if (typeof url !== 'string' || url === '') {
+                return false;
+            }
+
+            window.location.assign(url);
+
+            return true;
         }
+
+        const identifier = operation.identifier;
 
         if (typeof identifier !== 'string' || identifier === '') {
             return false;
         }
 
-        if (typeof html !== 'string') {
-            return false;
+        if (type === 'refresh' || type === 'replace') {
+            const html = operation.html;
+
+            if (typeof html !== 'string') {
+                return false;
+            }
+
+            return swapComponent(identifier, html);
         }
 
-        return swapComponent(identifier, html);
+        if (type === 'remove') {
+            return removeComponent(identifier);
+        }
+
+        if (type === 'append') {
+            const html = operation.html;
+
+            if (typeof html !== 'string') {
+                return false;
+            }
+
+            return insertComponent(identifier, html, 'afterend');
+        }
+
+        if (type === 'prepend') {
+            const html = operation.html;
+
+            if (typeof html !== 'string') {
+                return false;
+            }
+
+            return insertComponent(identifier, html, 'beforebegin');
+        }
+
+        return false;
     }
 
     function apply(payload) {

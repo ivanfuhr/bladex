@@ -32,6 +32,14 @@ Use this skill when a Laravel application needs to integrate the BladeX package.
 return bladex()->refresh(new RandomSentence());
 
 return bladex()->replace(new LoadingSpinner(), new RandomSentence());
+
+return bladex()->remove(new OldBanner());
+
+return bladex()->append(new ListContainer(), new ListItem($id));
+
+return bladex()->prepend(new ListContainer(), new ListItem($id));
+
+return bladex()->redirect(route('items.index'));
 ```
 
 4. On the client, use `fetch()` after `@bladexScripts` — operations apply automatically when the response has `X-BladeX: true`. Ensure the layout has `<meta name="csrf-token" content="{{ csrf_token() }}">` for POST requests.

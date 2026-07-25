@@ -21,6 +21,24 @@
         <button type="button" id="replace-demo">Replace spinner with sentence</button>
     </section>
 
+    <section>
+        <h2>Remove</h2>
+        <x-demo-removable />
+        <button type="button" id="remove-demo">Remove block</button>
+    </section>
+
+    <section>
+        <h2>Append / prepend</h2>
+        <x-demo-slot />
+        <button type="button" id="append-demo">Append chip after slot</button>
+        <button type="button" id="prepend-demo">Prepend chip before slot</button>
+    </section>
+
+    <section>
+        <h2>Redirect</h2>
+        <button type="button" id="redirect-demo">Redirect to top of this page</button>
+    </section>
+
     @bladexScripts
 
     <script>
@@ -30,6 +48,22 @@
 
         document.getElementById('replace-demo').addEventListener('click', function () {
             fetch('{{ url('/operations/replace') }}', { method: 'POST' });
+        });
+
+        document.getElementById('remove-demo').addEventListener('click', function () {
+            fetch('{{ url('/operations/remove') }}', { method: 'POST' });
+        });
+
+        document.getElementById('append-demo').addEventListener('click', function () {
+            fetch('{{ url('/operations/append') }}', { method: 'POST' });
+        });
+
+        document.getElementById('prepend-demo').addEventListener('click', function () {
+            fetch('{{ url('/operations/prepend') }}', { method: 'POST' });
+        });
+
+        document.getElementById('redirect-demo').addEventListener('click', function () {
+            fetch('{{ url('/operations/redirect') }}', { method: 'POST' });
         });
     </script>
 </body>
