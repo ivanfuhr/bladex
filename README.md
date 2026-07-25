@@ -140,6 +140,15 @@ return bladex()->redirect(route('items.index'));
 
 `redirect` navigates the browser with `location.assign()`. Operations run in order; put `redirect` last so earlier DOM updates are not skipped.
 
+Use `when` and `unless` to queue operations conditionally without breaking the chain:
+
+```php
+return bladex()
+    ->remove(new TodoItem($todo))
+    ->when(Todo::query()->count() === 0, fn ($bx) => $bx
+        ->append(new TodoList, new TodoEmptyState));
+```
+
 The response is JSON with an `operations` array and an `X-BladeX: true` header.
 
 ### HTTP status and response customization

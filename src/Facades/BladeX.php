@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Ivanfuhr\BladeX\BladeX append(\Ivanfuhr\BladeX\Component $into, \Ivanfuhr\BladeX\Component $content)
  * @method static \Ivanfuhr\BladeX\BladeX prepend(\Ivanfuhr\BladeX\Component $into, \Ivanfuhr\BladeX\Component $content)
  * @method static \Ivanfuhr\BladeX\BladeX redirect(string $url)
+ * @method static \Ivanfuhr\BladeX\BladeX when(mixed $value = null, ?callable $callback = null, ?callable $default = null)
+ * @method static \Ivanfuhr\BladeX\BladeX unless(mixed $value = null, ?callable $callback = null, ?callable $default = null)
  *
  * @see \Ivanfuhr\BladeX\BladeX
  */

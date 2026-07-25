@@ -42,6 +42,11 @@ return bladex()->prepend(new ListContainer(), new ListItem($id));
 return bladex()->redirect(route('items.index'));
 
 return bladex()
+    ->remove(new TodoItem($todo))
+    ->when(Todo::query()->count() === 0, fn ($bx) => $bx
+        ->append(new TodoList, new TodoEmptyState));
+
+return bladex()
     ->refresh(new OrderForm($order))
     ->unprocessableEntity()
     ->usingResponse(fn (JsonResponse $response) => $response->header('X-Request-Id', (string) $request->headers->get('X-Request-Id')));

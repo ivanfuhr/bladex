@@ -294,6 +294,62 @@ it('queues a redirect operation with the url', function () {
     ]);
 });
 
+it('appends when when is truthy', function () {
+    $banner = makeTestComponent('ui.banner', '<div>Banner</div>');
+    $into = makeTestComponent('list.container', '<ul></ul>');
+    $content = makeTestComponent('list.item', '<li>Item</li>');
+
+    $response = bladex()
+        ->remove($banner)
+        ->when(true, fn ($bx) => $bx->append($into, $content));
+
+    expect($response->toOperationArray())->toHaveCount(2)
+        ->and($response->toOperationArray()[0]['type'])->toBe('remove')
+        ->and($response->toOperationArray()[1]['type'])->toBe('append');
+});
+
+it('skips the callback when when is falsy', function () {
+    $banner = makeTestComponent('ui.banner', '<div>Banner</div>');
+    $into = makeTestComponent('list.container', '<ul></ul>');
+    $content = makeTestComponent('list.item', '<li>Item</li>');
+
+    $response = bladex()
+        ->remove($banner)
+        ->when(false, fn ($bx) => $bx->append($into, $content));
+
+    expect($response->toOperationArray())->toHaveCount(1)
+        ->and($response->toOperationArray()[0]['type'])->toBe('remove');
+});
+
+it('appends when unless is falsy', function () {
+    $banner = makeTestComponent('ui.banner', '<div>Banner</div>');
+    $into = makeTestComponent('list.container', '<ul></ul>');
+    $content = makeTestComponent('list.item', '<li>Item</li>');
+
+    $response = bladex()
+        ->remove($banner)
+        ->unless(false, fn ($bx) => $bx->append($into, $content));
+
+    expect($response->toOperationArray())->toHaveCount(2)
+        ->and($response->toOperationArray()[1]['type'])->toBe('append');
+});
+
+it('keeps the same instance when the when callback returns null', function () {
+    $banner = makeTestComponent('ui.banner', '<div>Banner</div>');
+
+    $response = bladex()
+        ->remove($banner)
+        ->when(true, function ($bx) {
+            $bx->redirect('/done');
+
+            return null;
+        });
+
+    expect($response->toOperationArray())->toHaveCount(2)
+        ->and($response->toOperationArray()[0]['type'])->toBe('remove')
+        ->and($response->toOperationArray()[1]['type'])->toBe('redirect');
+});
+
 it('allows chaining dom operations with redirect', function () {
     $banner = makeTestComponent('ui.banner', '<div>Banner</div>');
     $into = makeTestComponent('list.container', '<ul></ul>');

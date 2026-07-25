@@ -7,6 +7,7 @@ namespace Ivanfuhr\BladeX;
 use Closure;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Traits\Conditionable;
 use Ivanfuhr\BladeX\Operations\AppendOperation;
 use Ivanfuhr\BladeX\Operations\Operation;
 use Ivanfuhr\BladeX\Operations\PrependOperation;
@@ -19,6 +20,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class BladeX implements Responsable
 {
+    use Conditionable;
+
     /**
      * @var list<Operation>
      */
