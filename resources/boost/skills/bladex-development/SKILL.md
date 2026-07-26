@@ -29,28 +29,27 @@ Use this skill when a Laravel application needs to integrate the BladeX package.
 3. Return operations from routes or controllers:
 
 ```php
-return bladex()->refresh(new RandomSentence());
+return response()->refresh(new RandomSentence());
 
-return bladex()->replace(new LoadingSpinner(), new RandomSentence());
+return response()->replace(new LoadingSpinner(), new RandomSentence());
 
-return bladex()->remove(new OldBanner());
+return response()->remove(new OldBanner());
 
-return bladex()->append(new ListContainer(), new ListItem($id));
+return response()->append(new ListContainer(), new ListItem($id));
 
-return bladex()->prepend(new ListContainer(), new ListItem($id));
+return response()->prepend(new ListContainer(), new ListItem($id));
 
-return bladex()->redirect(route('items.index'));
+return response()->navigate(route('items.index'));
 
-return bladex()
+return response()->with()
     ->remove(new TodoItem($todo))
     ->when(Todo::query()->count() === 0, fn ($bx) => $bx
         ->append(new TodoList, new TodoEmptyState));
 
-return bladex()
+return response()->with(['meta' => ['saved' => true]])
     ->refresh(new OrderForm($order))
-    ->unprocessableEntity()
-    ->withErrors($validator)
-    ->usingResponse(fn (JsonResponse $response) => $response->header('X-Request-Id', (string) $request->headers->get('X-Request-Id')));
+    ->status(422)
+    ->usingResponse(fn (\Ivanfuhr\BladeX\Http\BladeXJsonResponse $response) => $response->header('X-Request-Id', (string) $request->headers->get('X-Request-Id')));
 ```
 
 Validation errors in BladeX JSON use `errors` as a list of `{ name, messages }`. Session default-bag errors are included when `bladex.include_session_errors` is true. Failed Form Request validation on JSON requests is returned automatically in the same shape (no `->withErrors()` required). Override or add errors with `->withErrors($validator)` when validating manually. Declarative form submits apply the first message per field as `data-error` on matching `name` attributes after operations run.
@@ -67,7 +66,7 @@ Read before executing:
 
 ## Examples
 
-- POST endpoint returns `bladex()->refresh($component)`; `data-post` on a button (or `fetch(url, { method: 'POST' })`) applies operations via the fetch proxy.
+- POST endpoint returns `response()->refresh($component)`; `data-post` on a button (or `fetch(url, { method: 'POST' })`) applies operations via the fetch proxy.
 
 ## Anti-patterns
 

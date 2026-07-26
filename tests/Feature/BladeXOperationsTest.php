@@ -6,8 +6,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\ViewErrorBag;
-use Ivanfuhr\BladeX\BladeX;
+use Ivanfuhr\BladeX\BladeXResponseBuilder;
 use Ivanfuhr\BladeX\Component;
+use Ivanfuhr\BladeX\Http\BladeXJsonResponse;
 use Ivanfuhr\BladeX\Support\ComponentRenderer;
 
 function makeTestComponent(string $identifier, string $html): Component
@@ -34,7 +35,7 @@ function makeTestComponent(string $identifier, string $html): Component
 it('queues a refresh operation with rendered html', function () {
     $component = makeTestComponent('random.sentence', '<div>Hello</div>');
 
-    $response = bladex()->refresh($component);
+    $response = response()->refresh($component);
 
     $operations = $response->operations();
 
@@ -50,7 +51,7 @@ it('queues a replace operation targeting from and rendering to', function () {
     $from = makeTestComponent('ui.spinner', '<div>Loading</div>');
     $to = makeTestComponent('random.sentence', '<div>Done</div>');
 
-    $response = bladex()->replace($from, $to);
+    $response = response()->replace($from, $to);
 
     $operations = $response->operations();
 
@@ -67,7 +68,7 @@ it('allows chaining refresh and replace operations', function () {
     $from = makeTestComponent('two', '<div>Two</div>');
     $to = makeTestComponent('three', '<div>Three</div>');
 
-    $response = bladex()
+    $response = response()->with()
         ->refresh($first)
         ->replace($from, $to);
 
@@ -79,7 +80,7 @@ it('allows chaining refresh and replace operations', function () {
 it('returns a json response with the bladex header', function () {
     $component = makeTestComponent('alert', '<div>Alert</div>');
 
-    $jsonResponse = bladex()->refresh($component)->toResponse(request());
+    $jsonResponse = response()->refresh($component)->toResponse(request());
 
     expect($jsonResponse->getStatusCode())->toBe(200)
         ->and($jsonResponse->headers->get('X-BladeX'))->toBe('true')
@@ -97,9 +98,9 @@ it('returns a json response with the bladex header', function () {
 it('returns a custom http status from the builder', function () {
     $component = makeTestComponent('alert', '<div>Alert</div>');
 
-    $jsonResponse = bladex()
+    $jsonResponse = response()->with()
         ->refresh($component)
-        ->created()
+        ->status(201)
         ->toResponse(request());
 
     expect($jsonResponse->getStatusCode())->toBe(201)
@@ -115,15 +116,15 @@ it('returns a custom http status from the builder', function () {
 });
 
 it('supports readable http status helpers', function () {
-    expect(bladex()->unprocessableEntity()->toResponse(request())->getStatusCode())->toBe(422)
-        ->and(bladex()->forbidden()->toResponse(request())->getStatusCode())->toBe(403)
-        ->and(bladex()->status(418)->toResponse(request())->getStatusCode())->toBe(418);
+    expect(response()->status(422)->toResponse(request())->getStatusCode())->toBe(422)
+        ->and(response()->status(403)->toResponse(request())->getStatusCode())->toBe(403)
+        ->and(response()->status(418)->toResponse(request())->getStatusCode())->toBe(418);
 });
 
 it('customizes the json response with usingResponse', function () {
     $component = makeTestComponent('alert', '<div>Alert</div>');
 
-    $jsonResponse = bladex()
+    $jsonResponse = response()->with()
         ->refresh($component)
         ->usingResponse(fn (JsonResponse $response) => $response
             ->header('X-Request-Id', 'abc-123')
@@ -138,9 +139,9 @@ it('customizes the json response with usingResponse', function () {
 it('chains operations with readable status and usingResponse', function () {
     $component = makeTestComponent('form', '<form></form>');
 
-    $jsonResponse = bladex()
+    $jsonResponse = response()->with()
         ->refresh($component)
-        ->unprocessableEntity()
+        ->status(422)
         ->usingResponse(fn (JsonResponse $response) => $response->header('X-Validation', 'failed'))
         ->toResponse(request());
 
@@ -150,8 +151,8 @@ it('chains operations with readable status and usingResponse', function () {
 });
 
 it('attaches cookies through usingResponse', function () {
-    $jsonResponse = bladex()
-        ->redirect('/home')
+    $jsonResponse = response()->with()
+        ->navigate('/home')
         ->usingResponse(fn (JsonResponse $response) => $response->cookie('flash', 'saved', 60))
         ->toResponse(request());
 
@@ -166,9 +167,9 @@ it('returns custom status and headers from an http route', function () {
     Route::post('/_bladex/test/http', function () {
         $component = makeTestComponent('demo.form', '<form></form>');
 
-        return bladex()
+        return response()->with()
             ->refresh($component)
-            ->unprocessableEntity()
+            ->status(422)
             ->usingResponse(fn (JsonResponse $response) => $response->header('X-Custom', 'yes'));
     });
 
@@ -179,9 +180,34 @@ it('returns custom status and headers from an http route', function () {
         ->assertJsonPath('operations.0.type', 'refresh');
 });
 
-it('exposes the bladex helper', function () {
-    expect(function_exists('bladex'))->toBeTrue()
-        ->and(bladex())->toBeInstanceOf(BladeX::class);
+it('exposes the response with macro', function () {
+    expect(response()->with())->toBeInstanceOf(BladeXResponseBuilder::class);
+});
+
+it('exposes refresh as a response factory macro', function () {
+    $component = makeTestComponent('panel', '<div>Panel</div>');
+
+    expect(response()->refresh($component))->toBeInstanceOf(BladeXResponseBuilder::class);
+});
+
+it('returns a BladeXJsonResponse instance', function () {
+    $component = makeTestComponent('panel', '<div>Panel</div>');
+
+    $jsonResponse = response()->refresh($component)->toResponse(request());
+
+    expect($jsonResponse)->toBeInstanceOf(BladeXJsonResponse::class);
+});
+
+it('merges extra json data with operations', function () {
+    $component = makeTestComponent('panel', '<section>Panel</section>');
+
+    $jsonResponse = response()
+        ->with(['meta' => ['version' => 2]])
+        ->refresh($component)
+        ->toResponse(request());
+
+    expect($jsonResponse->getData(true)['meta'])->toBe(['version' => 2])
+        ->and($jsonResponse->getData(true)['operations'])->toHaveCount(1);
 });
 
 it('renders components through the component renderer', function () {
@@ -215,7 +241,7 @@ it('returns refresh operations from an http route', function () {
     Route::post('/_bladex/test/refresh', function () {
         $component = makeTestComponent('demo.refresh', '<div>Refreshed</div>');
 
-        return bladex()->refresh($component);
+        return response()->refresh($component);
     });
 
     $response = $this->post('/_bladex/test/refresh');
@@ -238,7 +264,7 @@ it('returns replace operations from an http route', function () {
         $from = makeTestComponent('demo.spinner', '<div>Spinner</div>');
         $to = makeTestComponent('demo.content', '<div>Content</div>');
 
-        return bladex()->replace($from, $to);
+        return response()->replace($from, $to);
     });
 
     $response = $this->post('/_bladex/test/replace');
@@ -252,7 +278,7 @@ it('returns replace operations from an http route', function () {
 it('queues a remove operation with the component identifier', function () {
     $component = makeTestComponent('ui.banner', '<div>Banner</div>');
 
-    $response = bladex()->remove($component);
+    $response = response()->remove($component);
 
     expect($response->operations())->toHaveCount(1)
         ->and($response->toOperationArray()[0])->toBe([
@@ -265,7 +291,7 @@ it('queues an append operation as the last child inside into', function () {
     $into = makeTestComponent('list.container', '<ul></ul>');
     $content = makeTestComponent('list.item', '<li>Item</li>');
 
-    $response = bladex()->append($into, $content);
+    $response = response()->append($into, $content);
 
     expect($response->toOperationArray()[0])->toBe([
         'type' => 'append',
@@ -278,7 +304,7 @@ it('queues a prepend operation as the first child inside into', function () {
     $into = makeTestComponent('list.container', '<ul></ul>');
     $content = makeTestComponent('list.item', '<li>Item</li>');
 
-    $response = bladex()->prepend($into, $content);
+    $response = response()->prepend($into, $content);
 
     expect($response->toOperationArray()[0])->toBe([
         'type' => 'prepend',
@@ -288,7 +314,7 @@ it('queues a prepend operation as the first child inside into', function () {
 });
 
 it('queues a redirect operation with the url', function () {
-    $response = bladex()->redirect('/dashboard');
+    $response = response()->navigate('/dashboard');
 
     expect($response->toOperationArray()[0])->toBe([
         'type' => 'redirect',
@@ -301,7 +327,7 @@ it('appends when when is truthy', function () {
     $into = makeTestComponent('list.container', '<ul></ul>');
     $content = makeTestComponent('list.item', '<li>Item</li>');
 
-    $response = bladex()
+    $response = response()->with()
         ->remove($banner)
         ->when(true, fn ($bx) => $bx->append($into, $content));
 
@@ -315,7 +341,7 @@ it('skips the callback when when is falsy', function () {
     $into = makeTestComponent('list.container', '<ul></ul>');
     $content = makeTestComponent('list.item', '<li>Item</li>');
 
-    $response = bladex()
+    $response = response()->with()
         ->remove($banner)
         ->when(false, fn ($bx) => $bx->append($into, $content));
 
@@ -328,7 +354,7 @@ it('appends when unless is falsy', function () {
     $into = makeTestComponent('list.container', '<ul></ul>');
     $content = makeTestComponent('list.item', '<li>Item</li>');
 
-    $response = bladex()
+    $response = response()->with()
         ->remove($banner)
         ->unless(false, fn ($bx) => $bx->append($into, $content));
 
@@ -339,10 +365,10 @@ it('appends when unless is falsy', function () {
 it('keeps the same instance when the when callback returns null', function () {
     $banner = makeTestComponent('ui.banner', '<div>Banner</div>');
 
-    $response = bladex()
+    $response = response()->with()
         ->remove($banner)
         ->when(true, function ($bx) {
-            $bx->redirect('/done');
+            $bx->navigate('/done');
 
             return null;
         });
@@ -357,10 +383,10 @@ it('allows chaining dom operations with redirect', function () {
     $into = makeTestComponent('list.container', '<ul></ul>');
     $content = makeTestComponent('list.item', '<li>Item</li>');
 
-    $response = bladex()
+    $response = response()->with()
         ->remove($banner)
         ->append($into, $content)
-        ->redirect('/done');
+        ->navigate('/done');
 
     expect($response->toOperationArray())->toHaveCount(3)
         ->and($response->toOperationArray()[0]['type'])->toBe('remove')
@@ -375,7 +401,7 @@ it('returns remove operations from an http route', function () {
     Route::post('/_bladex/test/remove', function () {
         $component = makeTestComponent('demo.banner', '<div>Banner</div>');
 
-        return bladex()->remove($component);
+        return response()->remove($component);
     });
 
     $this->post('/_bladex/test/remove')
@@ -389,7 +415,7 @@ it('returns append operations from an http route', function () {
         $into = makeTestComponent('demo.list', '<ul></ul>');
         $content = makeTestComponent('demo.item', '<li>Item</li>');
 
-        return bladex()->append($into, $content);
+        return response()->append($into, $content);
     });
 
     $this->post('/_bladex/test/append')
@@ -403,7 +429,7 @@ it('returns append operations from an http route', function () {
 });
 
 it('includes explicit validation errors in the json payload', function () {
-    $jsonResponse = bladex()
+    $jsonResponse = response()->with()
         ->withErrors(['title' => ['The title field is required.']])
         ->toResponse(request());
 
@@ -418,7 +444,7 @@ it('includes explicit validation errors in the json payload', function () {
 });
 
 it('omits the errors key when there are no validation errors', function () {
-    $jsonResponse = bladex()->toResponse(request());
+    $jsonResponse = response()->with()->toResponse(request());
 
     expect($jsonResponse->getData(true))->not->toHaveKey('errors');
 });
@@ -431,7 +457,7 @@ it('merges session default bag errors into the json payload', function () {
 
     session()->flash('errors', $bag);
 
-    $jsonResponse = bladex()->toResponse(request());
+    $jsonResponse = response()->with()->toResponse(request());
 
     expect($jsonResponse->getData(true)['errors'])->toBe([
         [
@@ -449,7 +475,7 @@ it('lets builder errors override session errors for the same field', function ()
 
     session()->flash('errors', $bag);
 
-    $jsonResponse = bladex()
+    $jsonResponse = response()->with()
         ->withErrors(['title' => ['From builder']])
         ->toResponse(request());
 
@@ -471,7 +497,7 @@ it('includes session errors when withSessionErrors is chained and config is disa
 
     session()->flash('errors', $bag);
 
-    $jsonResponse = bladex()
+    $jsonResponse = response()->with()
         ->withSessionErrors()
         ->toResponse(request());
 
@@ -486,10 +512,10 @@ it('includes session errors when withSessionErrors is chained and config is disa
 it('keeps bladeX headers and operations when errors are present', function () {
     $component = makeTestComponent('form', '<form></form>');
 
-    $jsonResponse = bladex()
+    $jsonResponse = response()->with()
         ->refresh($component)
         ->withErrors(['title' => ['Required']])
-        ->unprocessableEntity()
+        ->status(422)
         ->toResponse(request());
 
     expect($jsonResponse->getStatusCode())->toBe(422)

@@ -12,25 +12,25 @@ Route::get('/', function () {
 });
 
 Route::post('/operations/refresh', function () {
-    return bladex()->refresh(new RandomSentence);
+    return response()->refresh(new RandomSentence);
 });
 
 Route::post('/operations/replace', function () {
-    return bladex()->replace(new LoadingSpinner, new RandomSentence);
+    return response()->replace(new LoadingSpinner, new RandomSentence);
 });
 
 Route::post('/operations/remove', function () {
-    return bladex()->remove(new DemoRemovable);
+    return response()->remove(new DemoRemovable);
 });
 
 Route::post('/operations/append', function () {
-    return bladex()->append(new DemoSlot, new DemoChip);
+    return response()->append(new DemoSlot, new DemoChip);
 });
 
 Route::post('/operations/prepend', function () {
-    return bladex()->prepend(new DemoSlot, new DemoChip);
+    return response()->prepend(new DemoSlot, new DemoChip);
 });
 
 Route::post('/operations/redirect', function () {
-    return bladex()->redirect(url('/').'#redirected');
+    return response()->navigate(url('/').'#redirected');
 });

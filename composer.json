@@ -34,10 +34,7 @@
     "autoload": {
         "psr-4": {
             "Ivanfuhr\\BladeX\\": "src/"
-        },
-        "files": [
-            "src/helpers.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
@@ -101,10 +98,7 @@
         "laravel": {
             "providers": [
                 "Ivanfuhr\\BladeX\\BladeXServiceProvider"
-            ],
-            "aliases": {
-                "BladeX": "Ivanfuhr\\BladeX\\Facades\\BladeX"
-            }
+            ]
         }
     },
     "config": {

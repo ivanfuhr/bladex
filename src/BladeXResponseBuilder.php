@@ -11,6 +11,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Traits\Conditionable;
 use Illuminate\Validation\ValidationException;
+use Ivanfuhr\BladeX\Http\BladeXJsonResponse;
 use Ivanfuhr\BladeX\Operations\AppendOperation;
 use Ivanfuhr\BladeX\Operations\Operation;
 use Ivanfuhr\BladeX\Operations\PrependOperation;
@@ -22,7 +23,7 @@ use Ivanfuhr\BladeX\Support\ComponentRenderer;
 use Ivanfuhr\BladeX\Support\ErrorPayload;
 use Symfony\Component\HttpFoundation\Response;
 
-class BladeX implements Responsable
+class BladeXResponseBuilder implements Responsable
 {
     use Conditionable;
 
@@ -45,9 +46,24 @@ class BladeX implements Responsable
 
     private bool $includeSessionErrors = false;
 
+    /**
+     * @var array<string, mixed>
+     */
+    private array $data = [];
+
     public function __construct(
         private readonly ComponentRenderer $componentRenderer,
     ) {}
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function withData(array $data): self
+    {
+        $this->data = array_merge($this->data, $data);
+
+        return $this;
+    }
 
     public function refresh(Component $component): self
     {
@@ -98,7 +114,7 @@ class BladeX implements Responsable
         return $this;
     }
 
-    public function redirect(string $url): self
+    public function navigate(string $url): self
     {
         $this->operations[] = new RedirectOperation($url);
 
@@ -110,61 +126,6 @@ class BladeX implements Responsable
         $this->status = $code;
 
         return $this;
-    }
-
-    public function ok(): self
-    {
-        return $this->status(Response::HTTP_OK);
-    }
-
-    public function created(): self
-    {
-        return $this->status(Response::HTTP_CREATED);
-    }
-
-    public function accepted(): self
-    {
-        return $this->status(Response::HTTP_ACCEPTED);
-    }
-
-    public function badRequest(): self
-    {
-        return $this->status(Response::HTTP_BAD_REQUEST);
-    }
-
-    public function unauthorized(): self
-    {
-        return $this->status(Response::HTTP_UNAUTHORIZED);
-    }
-
-    public function forbidden(): self
-    {
-        return $this->status(Response::HTTP_FORBIDDEN);
-    }
-
-    public function notFound(): self
-    {
-        return $this->status(Response::HTTP_NOT_FOUND);
-    }
-
-    public function conflict(): self
-    {
-        return $this->status(Response::HTTP_CONFLICT);
-    }
-
-    public function unprocessableEntity(): self
-    {
-        return $this->status(Response::HTTP_UNPROCESSABLE_ENTITY);
-    }
-
-    public function tooManyRequests(): self
-    {
-        return $this->status(Response::HTTP_TOO_MANY_REQUESTS);
-    }
-
-    public function serverError(): self
-    {
-        return $this->status(Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -239,27 +200,21 @@ class BladeX implements Responsable
         );
     }
 
-    public function toResponse($request): JsonResponse
+    public function toResponse($request): BladeXJsonResponse
     {
-        $payload = [
-            'operations' => $this->toOperationArray(),
-        ];
-
-        $errors = $this->resolvedErrors();
-
-        if ($errors !== []) {
-            ErrorPayload::appendToPayload($payload, $errors);
-        }
-
-        $response = response()
-            ->json(
-                $payload,
-                $this->status,
-            )
-            ->header('X-BladeX', 'true');
+        $response = BladeXJsonResponse::make(
+            $this->data,
+            $this->toOperationArray(),
+            $this->resolvedErrors(),
+            $this->status,
+        );
 
         foreach ($this->responseCustomizers as $customizer) {
-            $response = $customizer($response);
+            $customized = $customizer($response);
+
+            if ($customized instanceof BladeXJsonResponse) {
+                $response = $customized;
+            }
         }
 
         return $response;

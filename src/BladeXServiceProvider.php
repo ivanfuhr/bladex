@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Ivanfuhr\BladeX;
 
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\ServiceProvider;
 use Ivanfuhr\BladeX\Console\Commands\BladeXCommand;
 use Ivanfuhr\BladeX\Support\ComponentRenderer;
 use Ivanfuhr\BladeX\Support\FrontendAssets;
+use Ivanfuhr\BladeX\Support\RegistersBladeXResponseMacros;
 use Ivanfuhr\BladeX\Support\RegistersValidationExceptionRendering;
 use Ivanfuhr\BladeX\Support\RootElementAttributeInjector;
 use Ivanfuhr\BladeX\Support\RootElementValidator;
@@ -20,11 +22,9 @@ class BladeXServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        require_once __DIR__.'/helpers.php';
-
         $this->mergeConfigFrom(__DIR__.'/../config/bladex.php', 'bladex');
 
-        $this->app->bind(BladeX::class);
+        $this->app->bind(BladeXResponseBuilder::class);
 
         $this->app->singleton(ComponentRenderer::class);
 
@@ -48,6 +48,8 @@ class BladeXServiceProvider extends ServiceProvider
 
         $this->app->make(FrontendAssets::class)->boot();
 
+        $this->registerResponseMacros();
+
         $this->app->afterResolving(ExceptionHandler::class, function (ExceptionHandler $handler): void {
             (new RegistersValidationExceptionRendering)->register($handler);
         });
@@ -55,6 +57,13 @@ class BladeXServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->registerPublishing();
         }
+    }
+
+    protected function registerResponseMacros(): void
+    {
+        (new RegistersBladeXResponseMacros)->register(
+            $this->app->make(ResponseFactory::class),
+        );
     }
 
     protected function registerPublishing(): void

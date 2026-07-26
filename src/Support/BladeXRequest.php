@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Ivanfuhr\BladeX\Support;
 
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Ivanfuhr\BladeX\Http\BladeXJsonResponse;
 
 class BladeXRequest
 {
@@ -35,18 +35,8 @@ class BladeXRequest
         return ErrorPayload::normalize($exception);
     }
 
-    public static function validationErrorResponse(ValidationException $exception): JsonResponse
+    public static function validationErrorResponse(ValidationException $exception): BladeXJsonResponse
     {
-        $errors = self::validationErrors($exception);
-
-        $payload = [
-            'operations' => [],
-        ];
-
-        ErrorPayload::appendToPayload($payload, $errors);
-
-        return response()
-            ->json($payload, $exception->status)
-            ->header(self::RESPONSE_HEADER, 'true');
+        return BladeXJsonResponse::fromValidationException($exception);
     }
 }

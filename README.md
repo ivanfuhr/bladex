@@ -20,7 +20,25 @@ You can install the package via Composer:
 composer require ivanfuhr/bladex
 ```
 
-After installing or updating the package (especially from a path repository), run `composer dump-autoload` in your application so Composer registers the `bladex()` helper. If your editor still reports an unknown function, restart the PHP language server.
+After installing or updating the package (especially from a path repository), run `composer dump-autoload` in your application.
+
+### IDE support (macros on `response()`)
+
+BladeX registers `refresh`, `remove`, `navigate`, and related methods as **runtime macros** on Laravel's response factory. Static analysis does not see them unless you add the package IDE stub:
+
+**VS Code / Cursor (Intelephense)** — in your app's `.vscode/settings.json`:
+
+```json
+{
+    "intelephense.environment.includePaths": [
+        "vendor/ivanfuhr/bladex/ide"
+    ]
+}
+```
+
+**PHPStorm** — add `vendor/ivanfuhr/bladex/ide` under **Settings → PHP → Include Path**, or use the [Laravel Idea](https://laravel-idea.com/) plugin. When developing BladeX from a path repository, the repo root `.phpstorm.meta.php` and `.vscode/settings.json` already include the local `ide/` folder.
+
+Then restart the PHP language server. Chained calls such as `response()->remove($component)` should resolve to `BladeXResponseBuilder`.
 
 You may publish all of the package's resources at once:
 
@@ -89,12 +107,12 @@ const alert = Bladex.find('ui.alert');
 
 ## Operations
 
-Return BladeX operations from a route or controller to update the page without CSS selectors in PHP. Each operation targets a component by the `identifier()` of the `Component` instance you pass in.
+Return BladeX operations from a route or controller with `response()->refresh()`, `response()->replace()`, and the other operation macros on Laravel's response factory. Pass optional root-level JSON keys with `response()->with([...])` before chaining (reserved keys `operations` and `errors` are ignored). Each operation targets a component by the `identifier()` of the `Component` instance you pass in.
 
 ```php
 use App\View\Components\RandomSentence;
 
-return bladex()->refresh(new RandomSentence());
+return response()->refresh(new RandomSentence());
 ```
 
 `refresh` re-renders the given component and updates the existing root with the same `resolvedIdentifier()` on the page.
@@ -103,7 +121,7 @@ return bladex()->refresh(new RandomSentence());
 use App\View\Components\LoadingSpinner;
 use App\View\Components\RandomSentence;
 
-return bladex()->replace(new LoadingSpinner(), new RandomSentence());
+return response()->replace(new LoadingSpinner(), new RandomSentence());
 ```
 
 `replace` finds the root for `$from` and swaps it with the HTML rendered from `$to`. The DOM will then expose the identifier of `$to`.
@@ -111,7 +129,7 @@ return bladex()->replace(new LoadingSpinner(), new RandomSentence());
 ```php
 use App\View\Components\OldBanner;
 
-return bladex()->remove(new OldBanner());
+return response()->remove(new OldBanner());
 ```
 
 `remove` deletes the root that matches the given component’s `resolvedIdentifier()`.
@@ -120,7 +138,7 @@ return bladex()->remove(new OldBanner());
 use App\View\Components\ListContainer;
 use App\View\Components\ListItem;
 
-return bladex()->append(new ListContainer(), new ListItem($id));
+return response()->append(new ListContainer(), new ListItem($id));
 ```
 
 `append` inserts the rendered HTML of `$content` as the last child inside the root of `$into`.
@@ -129,21 +147,21 @@ return bladex()->append(new ListContainer(), new ListItem($id));
 use App\View\Components\ListContainer;
 use App\View\Components\ListItem;
 
-return bladex()->prepend(new ListContainer(), new ListItem($id));
+return response()->prepend(new ListContainer(), new ListItem($id));
 ```
 
 `prepend` inserts the rendered HTML as the first child inside the root of `$into`.
 
 ```php
-return bladex()->redirect(route('items.index'));
+return response()->navigate(route('items.index'));
 ```
 
-`redirect` navigates the browser with `location.assign()`. Operations run in order; put `redirect` last so earlier DOM updates are not skipped.
+`navigate` sends a client-side redirect operation (`location.assign()`). Operations run in order; put `navigate` last so earlier DOM updates are not skipped.
 
 Use `when` and `unless` to queue operations conditionally without breaking the chain:
 
 ```php
-return bladex()
+return response()->with()
     ->remove(new TodoItem($todo))
     ->when(Todo::query()->count() === 0, fn ($bx) => $bx
         ->append(new TodoList, new TodoEmptyState));
@@ -152,32 +170,33 @@ return bladex()
 The response is JSON with an `operations` array and an `X-BladeX: true` header. When validation errors are present, the payload may also include an `errors` list (`[{ "name": "field", "messages": ["..."] }]`) from the session default bag and/or failed validation (see `include_session_errors` in config).
 
 ```php
-return bladex()
+return response()
     ->refresh(new OrderForm($order))
-    ->unprocessableEntity();
+    ->status(422);
 ```
 
 **Note:** `->withErrors()` is optional — failed Form Requests on JSON requests are handled automatically.
 
 ### HTTP status and response customization
 
-Use readable status helpers on the builder:
+Set the HTTP status with `response()->status($code)` or `->status($code)` on the builder (same idea as the status argument to `response()->json(..., $status)`):
 
 ```php
-return bladex()
+return response()
+    ->status(422)
     ->refresh(new OrderForm($order))
-    ->unprocessableEntity();
+    ->withErrors($validator);
 ```
-
-Also available: `ok()`, `created()`, `accepted()`, `badRequest()`, `unauthorized()`, `forbidden()`, `notFound()`, `conflict()`, `tooManyRequests()`, `serverError()`, and `status($code)` for anything else.
 
 For headers, cookies, or any other `JsonResponse` API, use `usingResponse()` — BladeX does not reimplement `response()`:
 
 ```php
-return bladex()
+use Ivanfuhr\BladeX\Http\BladeXJsonResponse;
+
+return response()
     ->refresh(new OrderForm($order))
-    ->unprocessableEntity()
-    ->usingResponse(fn (JsonResponse $response) => $response
+    ->status(422)
+    ->usingResponse(fn (BladeXJsonResponse $response) => $response
         ->header('X-Request-Id', $requestId)
         ->cookie('flash', 'saved', 60));
 ```
@@ -226,7 +245,7 @@ You can still use `Bladex.fetch()` explicitly, or call `Bladex.apply(payload)` w
 
 ### Declarative actions
 
-After `@bladexScripts`, you can trigger BladeX requests from HTML attributes instead of writing `fetch()` or `onclick` handlers. The server still decides which components to update through `bladex()` operations and `identifier()` — there is no `hx-target` in the markup.
+After `@bladexScripts`, you can trigger BladeX requests from HTML attributes instead of writing `fetch()` or `onclick` handlers. The server still decides which components to update through `response()->refresh()` (and related macros) plus `identifier()` — there is no `hx-target` in the markup.
 
 Put exactly one method attribute with the request URL on the element:
 
