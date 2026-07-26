@@ -1,15 +1,27 @@
+export const VALIDATION_FAILED_EVENT = 'validation-failed';
+export const VALIDATION_CLEARED_EVENT = 'validation-cleared';
+
 /**
  * @param {unknown} messages
- * @returns {string | null}
+ * @returns {string[]}
  */
-function firstErrorMessage(messages) {
-    if (!Array.isArray(messages) || messages.length === 0) {
-        return null;
+function normalizeMessageList(messages) {
+    if (!Array.isArray(messages)) {
+        return [];
     }
 
-    const message = messages[0];
+    /** @type {string[]} */
+    const normalized = [];
 
-    return typeof message === 'string' && message !== '' ? message : null;
+    for (let index = 0; index < messages.length; index++) {
+        const message = messages[index];
+
+        if (typeof message === 'string' && message !== '') {
+            normalized.push(message);
+        }
+    }
+
+    return normalized;
 }
 
 /**
@@ -18,13 +30,13 @@ function firstErrorMessage(messages) {
  * @param {unknown} messages
  */
 function addNormalizedFieldError(target, name, messages) {
-    const message = firstErrorMessage(messages);
+    const list = normalizeMessageList(messages);
 
-    if (message === null) {
+    if (list.length === 0) {
         return;
     }
 
-    target[name] = [message];
+    target[name] = list;
 }
 
 /**
@@ -136,43 +148,24 @@ export function fieldNameMatchesErrorKey(name, errorKey) {
 
 /**
  * @param {HTMLFormElement} form
- */
-export function clearFormFieldErrors(form) {
-    if (!(form instanceof HTMLFormElement)) {
-        return;
-    }
-
-    for (let index = 0; index < form.elements.length; index++) {
-        const control = form.elements[index];
-
-        if (control instanceof Element) {
-            control.removeAttribute('data-error');
-            control.removeAttribute('data-error-field');
-            control.removeAttribute('aria-invalid');
-        }
-    }
-}
-
-/**
- * @param {HTMLFormElement} form
  * @param {Record<string, string[]>} errors
+ * @returns {Record<string, HTMLElement[]>}
  */
-export function applyFormErrors(form, errors) {
-    if (!(form instanceof HTMLFormElement)) {
-        return;
-    }
+export function resolveFieldsForErrors(form, errors) {
+    /** @type {Record<string, HTMLElement[]>} */
+    const fields = {};
 
-    clearFormFieldErrors(form);
+    if (!(form instanceof HTMLFormElement)) {
+        return fields;
+    }
 
     const errorKeys = Object.keys(errors);
 
     for (let keyIndex = 0; keyIndex < errorKeys.length; keyIndex++) {
         const errorKey = errorKeys[keyIndex];
-        const message = firstErrorMessage(errors[errorKey]);
 
-        if (message === null) {
-            continue;
-        }
+        /** @type {HTMLElement[]} */
+        const controls = [];
 
         for (let index = 0; index < form.elements.length; index++) {
             const control = form.elements[index];
@@ -191,10 +184,83 @@ export function applyFormErrors(form, errors) {
                 continue;
             }
 
-            control.setAttribute('data-error-field', errorKey);
-            control.setAttribute('data-error', message);
-            control.setAttribute('aria-invalid', 'true');
-            break;
+            controls.push(control);
+        }
+
+        if (controls.length > 0) {
+            fields[errorKey] = controls;
+        }
+    }
+
+    return fields;
+}
+
+/**
+ * @param {HTMLFormElement} form
+ * @param {'submit' | 'success'} reason
+ */
+export function dispatchValidationCleared(form, reason) {
+    if (!(form instanceof HTMLFormElement)) {
+        return;
+    }
+
+    for (let index = 0; index < form.elements.length; index++) {
+        const control = form.elements[index];
+
+        if (!(control instanceof HTMLElement)) {
+            continue;
+        }
+
+        control.dispatchEvent(
+            new CustomEvent(VALIDATION_CLEARED_EVENT, {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    form: form,
+                    control: control,
+                    reason: reason,
+                },
+            }),
+        );
+    }
+}
+
+/**
+ * @param {HTMLFormElement} form
+ * @param {Record<string, string[]>} errors
+ */
+export function dispatchValidationFailed(form, errors) {
+    if (!(form instanceof HTMLFormElement)) {
+        return;
+    }
+
+    const fields = resolveFieldsForErrors(form, errors);
+    const errorKeys = Object.keys(fields);
+
+    for (let keyIndex = 0; keyIndex < errorKeys.length; keyIndex++) {
+        const errorKey = errorKeys[keyIndex];
+        const messages = errors[errorKey];
+        const controls = fields[errorKey];
+
+        if (messages === undefined || controls === undefined) {
+            continue;
+        }
+
+        for (let controlIndex = 0; controlIndex < controls.length; controlIndex++) {
+            const control = controls[controlIndex];
+
+            control.dispatchEvent(
+                new CustomEvent(VALIDATION_FAILED_EVENT, {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        form: form,
+                        control: control,
+                        field: errorKey,
+                        messages: messages,
+                    },
+                }),
+            );
         }
     }
 }

@@ -207,7 +207,22 @@ The JSON body stays `{ "operations": [...] }` and may include validation data wh
 
 The fetch proxy applies operations whenever `X-BladeX: true` is present, even if the status is not 2xx — your JavaScript can still branch on `response.ok` for validation or error handling.
 
-For declarative `<form data-post|data-put|...>` requests, BladeX matches each `errors` entry to form controls by `name`, then sets `data-error-field` (field key), `data-error` (first message), and `aria-invalid="true"`. Successful responses (`response.ok`) clear those attributes on that form.
+For declarative `<form data-post|data-put|...>` requests, BladeX dispatches a `validation-failed` custom event on **each matching form control** when the response includes validation errors (after operations run). The event bubbles and includes `detail.field` (Laravel error key), `detail.messages`, `detail.control`, and `detail.form`. Successful responses (`response.ok`) dispatch `validation-cleared` on each control in the form with `detail.reason` set to `success`; a new submit dispatches the same event with `reason` `submit`. Listen on inputs or use event delegation on the form or `document`:
+
+```javascript
+document.addEventListener('validation-failed', (event) => {
+    const { control, messages } = event.detail;
+
+    control.setAttribute('aria-invalid', 'true');
+    // show messages[0], messages.join(' '), etc.
+});
+
+document.addEventListener('validation-cleared', (event) => {
+    event.detail.control.removeAttribute('aria-invalid');
+});
+```
+
+You can also call `Bladex.dispatchValidationFailed(form, errors)` manually or use `Bladex.normalizeErrors(payload)` after your own `fetch` calls.
 
 Failed **Form Request** validation on JSON / BladeX requests is converted automatically to the same payload shape (`operations: []`, `errors`, `X-BladeX: true`) — you do not need `->withErrors()` in the controller. Disable with `bladex.treat_json_validation_as_bladex` or use non-JSON requests for Laravel's default validation JSON.
 

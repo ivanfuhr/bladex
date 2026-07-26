@@ -14,15 +14,23 @@ import {
 import { apply } from './operations/index.js';
 import { processBladexResponse } from './response.js';
 import {
-    applyFormErrors,
-    clearFormFieldErrors,
+    dispatchValidationCleared,
+    dispatchValidationFailed,
+    normalizeErrors,
+    resolveFieldsForErrors,
+    VALIDATION_CLEARED_EVENT,
+    VALIDATION_FAILED_EVENT,
 } from './forms/errors.js';
 
 export const Bladex = {
     apply,
     processBladexResponse,
-    applyFormErrors,
-    clearFormFieldErrors,
+    dispatchValidationFailed,
+    dispatchValidationCleared,
+    normalizeErrors,
+    resolveFieldsForErrors,
+    VALIDATION_FAILED_EVENT,
+    VALIDATION_CLEARED_EVENT,
     fetch,
     installFetchProxy,
     uninstallFetchProxy,

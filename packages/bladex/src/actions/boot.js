@@ -7,7 +7,7 @@ import {
     ACTION_SELECTOR,
 } from './methods.js';
 import {
-    clearFormFieldErrors,
+    dispatchValidationCleared,
     formFromTriggerElement,
 } from '../forms/errors.js';
 import {
@@ -119,7 +119,7 @@ function performRequest(triggerElement, request) {
     });
 
     if (form !== null) {
-        clearFormFieldErrors(form);
+        dispatchValidationCleared(form, 'submit');
     }
 
     inFlightElements.add(triggerElement);

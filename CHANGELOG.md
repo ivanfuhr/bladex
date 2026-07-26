@@ -4,6 +4,7 @@
 
 ### Changed
 
+- **Breaking:** Declarative form validation no longer sets `data-error` / `data-error-field` on controls. BladeX dispatches `validation-failed` and `validation-cleared` on each form control instead. Public JS API: `Bladex.dispatchValidationFailed`, `Bladex.dispatchValidationCleared`, `Bladex.normalizeErrors` (removed `applyFormErrors` / `clearFormFieldErrors`).
 - **Breaking:** BladeX responses use `response()->refresh()` / `replace()` / `navigate()` (and related macros) instead of `response()->bladex()`. Extra JSON keys: `response()->with([...])`.
 - **Breaking:** Builder `redirect()` removed; use `navigate()` (client operation JSON type remains `redirect`).
 - **Breaking:** Removed named HTTP helpers on the builder (`unprocessableEntity()`, `forbidden()`, etc.); use `response()->status($code)` or `->status($code)`.

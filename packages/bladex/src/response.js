@@ -1,8 +1,8 @@
 import { apply } from './operations/index.js';
 import { isBladexResponse } from './fetch/bladex-response.js';
 import {
-    applyFormErrors,
-    clearFormFieldErrors,
+    dispatchValidationCleared,
+    dispatchValidationFailed,
     normalizeErrors,
 } from './forms/errors.js';
 import { takePendingFormContext } from './forms/context.js';
@@ -67,9 +67,9 @@ export function processBladexResponse(response) {
 
             if (form instanceof HTMLFormElement) {
                 if (response.ok && clearOnSuccess) {
-                    clearFormFieldErrors(form);
+                    dispatchValidationCleared(form, 'success');
                 } else if (errors !== null) {
-                    applyFormErrors(form, errors);
+                    dispatchValidationFailed(form, errors);
                 }
             }
 

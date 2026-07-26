@@ -1,10 +1,13 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
-    applyFormErrors,
-    clearFormFieldErrors,
+    dispatchValidationCleared,
+    dispatchValidationFailed,
     fieldNameMatchesErrorKey,
     fieldNameToErrorKey,
     normalizeErrors,
+    resolveFieldsForErrors,
+    VALIDATION_CLEARED_EVENT,
+    VALIDATION_FAILED_EVENT,
 } from '../../src/forms/errors.js';
 
 describe('forms/errors', () => {
@@ -20,7 +23,7 @@ describe('forms/errors', () => {
         );
     });
 
-    it('sets data-error with the first message on matching fields', () => {
+    it('dispatches validation-failed on each matching control', () => {
         document.body.innerHTML =
             '<form id="f">' +
             '<input name="title" />' +
@@ -28,43 +31,65 @@ describe('forms/errors', () => {
             '</form>';
 
         const form = document.querySelector('#f');
+        const titleInput = form.querySelector('[name="title"]');
+        const emailInput = form.querySelector('[name="user[email]"]');
+        const titleListener = vi.fn();
+        const emailListener = vi.fn();
 
-        applyFormErrors(form, {
+        titleInput.addEventListener(VALIDATION_FAILED_EVENT, titleListener);
+        emailInput.addEventListener(VALIDATION_FAILED_EVENT, emailListener);
+
+        dispatchValidationFailed(form, {
             title: ['The title field is required.'],
             'user.email': ['Invalid email.'],
         });
 
-        expect(form.querySelector('[name="title"]').getAttribute('data-error')).toBe(
-            'The title field is required.',
-        );
-        expect(
-            form.querySelector('[name="user[email]"]').getAttribute('data-error'),
-        ).toBe('Invalid email.');
+        expect(titleListener).toHaveBeenCalledTimes(1);
+        expect(titleListener.mock.calls[0][0].detail).toEqual({
+            form: form,
+            control: titleInput,
+            field: 'title',
+            messages: ['The title field is required.'],
+        });
+        expect(emailListener).toHaveBeenCalledTimes(1);
+        expect(emailListener.mock.calls[0][0].detail.field).toBe('user.email');
+        expect(emailListener.mock.calls[0][0].bubbles).toBe(true);
     });
 
-    it('clears data-error from all form controls', () => {
+    it('dispatches validation-cleared on each form control', () => {
         document.body.innerHTML =
-            '<form id="f"><input name="title" data-error="Old" /></form>';
+            '<form id="f"><input name="title" /><button type="button">x</button></form>';
 
         const form = document.querySelector('#f');
-
-        clearFormFieldErrors(form);
-
-        expect(form.querySelector('input').hasAttribute('data-error')).toBe(
-            false,
+        const inputs = [...form.elements].filter(
+            (element) => element instanceof HTMLElement,
         );
+        const listener = vi.fn();
+
+        for (const control of inputs) {
+            control.addEventListener(VALIDATION_CLEARED_EVENT, listener);
+        }
+
+        dispatchValidationCleared(form, 'submit');
+
+        expect(listener).toHaveBeenCalledTimes(inputs.length);
+        expect(listener.mock.calls[0][0].detail).toEqual({
+            form: form,
+            control: inputs[0],
+            reason: 'submit',
+        });
     });
 
-    it('normalizes payload errors', () => {
+    it('normalizes payload errors with all messages', () => {
         expect(
             normalizeErrors({
                 errors: {
-                    title: ['Required'],
+                    title: ['Required', 'Too short'],
                     empty: [],
                 },
             }),
         ).toEqual({
-            title: ['Required'],
+            title: ['Required', 'Too short'],
         });
     });
 
@@ -74,12 +99,12 @@ describe('forms/errors', () => {
                 errors: [
                     {
                         name: 'user.email',
-                        messages: ['Invalid email.'],
+                        messages: ['Invalid email.', 'Must be unique.'],
                     },
                 ],
             }),
         ).toEqual({
-            'user.email': ['Invalid email.'],
+            'user.email': ['Invalid email.', 'Must be unique.'],
         });
     });
 
@@ -96,22 +121,38 @@ describe('forms/errors', () => {
         });
     });
 
-    it('sets data-error-field and data-error on matching controls', () => {
+    it('resolveFieldsForErrors includes all matching controls', () => {
         document.body.innerHTML =
-            '<form id="f"><input name="title" /></form>';
+            '<form id="f">' +
+            '<input type="radio" name="choice" value="a" />' +
+            '<input type="radio" name="choice" value="b" />' +
+            '</form>';
 
         const form = document.querySelector('#f');
 
-        applyFormErrors(form, {
-            title: ['The title field is required.'],
+        const fields = resolveFieldsForErrors(form, {
+            choice: ['Pick one.'],
         });
 
-        const input = form.querySelector('input');
+        expect(fields.choice).toHaveLength(2);
+    });
 
-        expect(input.getAttribute('data-error-field')).toBe('title');
-        expect(input.getAttribute('data-error')).toBe(
-            'The title field is required.',
-        );
-        expect(input.getAttribute('aria-invalid')).toBe('true');
+    it('dispatches validation-failed on each radio for the same field', () => {
+        document.body.innerHTML =
+            '<form id="f">' +
+            '<input type="radio" name="choice" value="a" />' +
+            '<input type="radio" name="choice" value="b" />' +
+            '</form>';
+
+        const form = document.querySelector('#f');
+        const listener = vi.fn();
+
+        document.addEventListener(VALIDATION_FAILED_EVENT, listener);
+
+        dispatchValidationFailed(form, {
+            choice: ['Pick one.'],
+        });
+
+        expect(listener).toHaveBeenCalledTimes(2);
     });
 });
