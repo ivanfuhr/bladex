@@ -200,6 +200,12 @@ To disable the proxy (for example if you manage `fetch` yourself), pass:
 @bladexScripts(['fetchProxy' => false])
 ```
 
+By default, `refresh` and `replace` reconcile the matched component root with server HTML using DOM morphing (preserves focus and local state when possible). To restore legacy full replacement (`outerHTML`), publish config and set `dom_update` to `replace`, or pass:
+
+```blade
+@bladexScripts(['domUpdate' => 'replace'])
+```
+
 You can still use `Bladex.fetch()` explicitly, or call `Bladex.apply(payload)` when the proxy is off.
 
 ### Declarative actions
@@ -236,7 +242,7 @@ Example:
 </button>
 ```
 
-Both `refresh` and `replace` update the matched root via `outerHTML`. `remove` calls `element.remove()`. `append` and `prepend` insert `$content` inside the root of `$into` (`beforeend` / `afterbegin`).
+Both `refresh` and `replace` update the matched root by morphing server HTML into the existing element (see `dom_update` in config). With `dom_update` set to `replace`, they use `outerHTML` instead. `remove` calls `element.remove()`. `append` and `prepend` insert `$content` inside the root of `$into` (`beforeend` / `afterbegin`).
 
 If more than one element shares the same `data-component-identifier`, BladeX logs an error and skips the operation. Make `identifier()` unique per mounted instance when you render multiple copies of the same component (for example by including a model id in the identifier).
 

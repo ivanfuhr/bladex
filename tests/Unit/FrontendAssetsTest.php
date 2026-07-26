@@ -39,3 +39,23 @@ it('can disable the fetch proxy through script options', function () {
 
     expect($html)->toContain('data-fetch-proxy="false"');
 });
+
+it('emits the dom update mode on the script tag', function () {
+    app(FrontendAssets::class)->hasRenderedScripts = false;
+
+    $html = FrontendAssets::scripts();
+
+    expect($html)->toContain('data-dom-update="morph"');
+});
+
+it('allows overriding the dom update mode through script options', function () {
+    app(FrontendAssets::class)->hasRenderedScripts = false;
+
+    $html = FrontendAssets::scripts(['domUpdate' => 'replace']);
+
+    expect($html)->toContain('data-dom-update="replace"');
+});
+
+it('normalizes invalid dom update modes to morph', function () {
+    expect(FrontendAssets::resolveDomUpdateMode('invalid'))->toBe('morph');
+});

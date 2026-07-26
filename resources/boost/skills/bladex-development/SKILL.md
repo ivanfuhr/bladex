@@ -52,7 +52,7 @@ return bladex()
     ->usingResponse(fn (JsonResponse $response) => $response->header('X-Request-Id', (string) $request->headers->get('X-Request-Id')));
 ```
 
-4. On the client, prefer declarative attributes after `@bladexScripts` (for example `data-post="{{ route('items.refresh') }}"` on a button). While the request runs, BladeX sets `data-loading` on that element; for `<form data-post="...">` it also disables the form controls until the response returns. Style `[data-loading]` as needed. Operations apply automatically when the response has `X-BladeX: true`, regardless of HTTP status. You can still call `fetch()` manually if needed. Ensure the layout has `<meta name="csrf-token" content="{{ csrf_token() }}">` for POST requests.
+4. On the client, prefer declarative attributes after `@bladexScripts` (for example `data-post="{{ route('items.refresh') }}"` on a button). While the request runs, BladeX sets `data-loading` on that element; for `<form data-post="...">` it also disables the form controls until the response returns. Style `[data-loading]` as needed. Operations apply automatically when the response has `X-BladeX: true`, regardless of HTTP status. `refresh` and `replace` morph server HTML into the matched root by default (`bladex.dom_update`); use `replace` for legacy `outerHTML` swaps. You can still call `fetch()` manually if needed. Ensure the layout has `<meta name="csrf-token" content="{{ csrf_token() }}">` for POST requests.
 
 Ensure each mounted instance has a unique `identifier()` when multiple copies of the same component appear on one page.
 

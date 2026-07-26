@@ -1,8 +1,21 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { apply, applyOperation } from '../../src/operations/index.js';
+import {
+    getDomUpdateMode,
+    setDomUpdateMode,
+} from '../../src/components/dom-update-mode.js';
 
 describe('operations', () => {
+    /** @type {DomUpdateMode} */
+    let previousMode;
+
+    beforeEach(() => {
+        previousMode = getDomUpdateMode();
+        setDomUpdateMode('morph');
+    });
+
     afterEach(() => {
+        setDomUpdateMode(previousMode);
         document.body.innerHTML = '';
     });
 

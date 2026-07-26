@@ -12,4 +12,11 @@ return [
     */
     'enforce_single_root_element' => true,
 
+    /*
+    | How refresh and replace operations update the DOM on the client.
+    | morph: reconcile the existing root with server HTML (preserves focus when possible).
+    | replace: set outerHTML on the matched root (legacy behavior).
+    */
+    'dom_update' => 'morph',
+
 ];

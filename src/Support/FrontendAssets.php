@@ -65,7 +65,12 @@ class FrontendAssets
 
         $url = $options['url'] ?? static::scriptUrl();
         $fetchProxy = $options['fetchProxy'] ?? true;
-        $attributes = $fetchProxy === false ? ' data-fetch-proxy="false"' : '';
+        $domUpdate = static::resolveDomUpdateMode($options['domUpdate'] ?? null);
+        $attributes = sprintf(' data-dom-update="%s"', e($domUpdate));
+
+        if ($fetchProxy === false) {
+            $attributes .= ' data-fetch-proxy="false"';
+        }
 
         return sprintf(
             '<script src="%s?v=%s" defer%s></script>',
@@ -94,5 +99,16 @@ class FrontendAssets
     public static function scriptUrl(): string
     {
         return url(self::scriptPath());
+    }
+
+    public static function resolveDomUpdateMode(?string $override = null): string
+    {
+        $mode = $override ?? config('bladex.dom_update', 'morph');
+
+        if (! is_string($mode)) {
+            return 'morph';
+        }
+
+        return in_array($mode, ['morph', 'replace'], true) ? $mode : 'morph';
     }
 }
