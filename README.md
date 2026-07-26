@@ -207,7 +207,7 @@ The JSON body stays `{ "operations": [...] }` and may include validation data wh
 
 The fetch proxy applies operations whenever `X-BladeX: true` is present, even if the status is not 2xx — your JavaScript can still branch on `response.ok` for validation or error handling.
 
-For declarative `<form data-post|data-put|...>` requests, BladeX dispatches a `validation-failed` custom event on **each matching form control** when the response includes validation errors (after operations run). The event bubbles and includes `detail.field` (Laravel error key), `detail.messages`, `detail.control`, and `detail.form`. Successful responses (`response.ok`) dispatch `validation-cleared` on each control in the form with `detail.reason` set to `success`; a new submit dispatches the same event with `reason` `submit`. Listen on inputs or use event delegation on the form or `document`:
+For declarative `<form data-fetch data-method="post|put|...">` requests, BladeX dispatches a `validation-failed` custom event on **each matching form control** when the response includes validation errors (after operations run). The event bubbles and includes `detail.field` (Laravel error key), `detail.messages`, `detail.control`, and `detail.form`. Successful responses (`response.ok`) dispatch `validation-cleared` on each control in the form with `detail.reason` set to `success`; a new submit dispatches the same event with `reason` `submit`. Listen on inputs or use event delegation on the form or `document`:
 
 ```javascript
 document.addEventListener('validation-failed', (event) => {
@@ -262,17 +262,14 @@ You can still use `Bladex.fetch()` explicitly, or call `Bladex.apply(payload)` w
 
 After `@bladexScripts`, you can trigger BladeX requests from HTML attributes instead of writing `fetch()` or `onclick` handlers. The server still decides which components to update through `response()->refresh()` (and related macros) plus `identifier()` — there is no `hx-target` in the markup.
 
-Put exactly one method attribute with the request URL on the element:
+Put `data-fetch` with the request URL on the element. HTTP method defaults to **GET**; set `data-method` for mutating verbs.
 
-| Attribute | HTTP method |
-|-----------|-------------|
-| `data-get` | GET |
-| `data-post` | POST |
-| `data-put` | PUT |
-| `data-patch` | PATCH |
-| `data-delete` | DELETE |
+| Attribute | Behavior |
+|-----------|----------|
+| `data-fetch` | Request URL (required for declarative actions). |
+| `data-method` | HTTP method: `get`, `post`, `put`, `patch`, or `delete`. Defaults to `get` when omitted. |
 
-Optional attribute:
+Optional attributes:
 
 | Attribute | Behavior |
 |-----------|----------|
@@ -286,7 +283,8 @@ Example:
 ```blade
 <button
     type="button"
-    data-post="{{ route('items.store') }}"
+    data-fetch="{{ route('items.store') }}"
+    data-method="post"
 >
     Add item
 </button>

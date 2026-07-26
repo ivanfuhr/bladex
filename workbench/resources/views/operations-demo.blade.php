@@ -17,7 +17,8 @@
         <x-random-sentence />
         <button
             type="button"
-            data-post="{{ url('/operations/refresh') }}"
+            data-fetch="{{ url('/operations/refresh') }}"
+            data-method="post"
         >
             Refresh sentence
         </button>
@@ -28,7 +29,8 @@
         <x-loading-spinner />
         <button
             type="button"
-            data-post="{{ url('/operations/replace') }}"
+            data-fetch="{{ url('/operations/replace') }}"
+            data-method="post"
         >
             Replace spinner with sentence
         </button>
@@ -39,7 +41,8 @@
         <x-demo-removable />
         <button
             type="button"
-            data-post="{{ url('/operations/remove') }}"
+            data-fetch="{{ url('/operations/remove') }}"
+            data-method="post"
         >
             Remove block
         </button>
@@ -50,13 +53,15 @@
         <x-demo-slot />
         <button
             type="button"
-            data-post="{{ url('/operations/append') }}"
+            data-fetch="{{ url('/operations/append') }}"
+            data-method="post"
         >
             Append chip inside slot (end)
         </button>
         <button
             type="button"
-            data-post="{{ url('/operations/prepend') }}"
+            data-fetch="{{ url('/operations/prepend') }}"
+            data-method="post"
         >
             Prepend chip inside slot (start)
         </button>
@@ -71,7 +76,8 @@
             <select
                 id="slot-action"
                 data-trigger="change"
-                data-post="{{ url('/operations/append') }}"
+                data-fetch="{{ url('/operations/append') }}"
+                data-method="post"
             >
                 <option value="" selected>—</option>
                 <option value="1">Append once</option>
@@ -84,7 +90,8 @@
         <h2>Redirect</h2>
         <button
             type="button"
-            data-post="{{ url('/operations/redirect') }}"
+            data-fetch="{{ url('/operations/redirect') }}"
+            data-method="post"
         >
             Redirect to top of this page
         </button>

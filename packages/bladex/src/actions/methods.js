@@ -1,30 +1,47 @@
-export const METHOD_ATTRIBUTES = [
-    { attribute: 'data-get', method: 'GET' },
-    { attribute: 'data-post', method: 'POST' },
-    { attribute: 'data-put', method: 'PUT' },
-    { attribute: 'data-patch', method: 'PATCH' },
-    { attribute: 'data-delete', method: 'DELETE' },
+export const ALLOWED_HTTP_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
 ];
 
-export const ACTION_SELECTOR = METHOD_ATTRIBUTES.map(function (entry) {
-    return '[' + entry.attribute + ']';
-}).join(', ');
+export const ACTION_SELECTOR = '[data-fetch]';
+
+export function resolveHttpMethod(element) {
+    const raw = element.getAttribute('data-method');
+
+    if (raw === null || raw.trim() === '') {
+        return 'GET';
+    }
+
+    const normalized = raw.trim().toUpperCase();
+
+    if (ALLOWED_HTTP_METHODS.indexOf(normalized) === -1) {
+        console.warn(
+            '[Bladex] Unknown data-method "' +
+                raw +
+                '"; falling back to GET.',
+        );
+
+        return 'GET';
+    }
+
+    return normalized;
+}
 
 export function resolveRequest(element) {
     if (!(element instanceof Element)) {
         return null;
     }
 
-    for (let index = 0; index < METHOD_ATTRIBUTES.length; index++) {
-        const entry = METHOD_ATTRIBUTES[index];
-        const url = element.getAttribute(entry.attribute);
+    const url = element.getAttribute('data-fetch');
 
-        if (url !== null && url !== '') {
-            return { url: url, method: entry.method };
-        }
+    if (url === null || url === '') {
+        return null;
     }
 
-    return null;
+    return { url: url, method: resolveHttpMethod(element) };
 }
 
 export function defaultTriggerSpec(element) {

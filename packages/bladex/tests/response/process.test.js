@@ -13,7 +13,7 @@ describe('processBladexResponse', () => {
     it('applies operations then dispatches validation-failed on the submitting form', async () => {
         document.body.innerHTML =
             '<div data-component-identifier="ui.form">' +
-            '<form id="f" data-post="/items">' +
+            '<form id="f" data-fetch="/items" data-method="post">' +
             '<input name="title" value="Hi" />' +
             '</form>' +
             '</div>';
@@ -34,7 +34,7 @@ describe('processBladexResponse', () => {
                         identifier: 'ui.form',
                         html:
                             '<div data-component-identifier="ui.form">' +
-                            '<form id="f" data-post="/items">' +
+                            '<form id="f" data-fetch="/items" data-method="post">' +
                             '<input name="title" value="Hi" />' +
                             '<p class="error">Too short</p>' +
                             '</form>' +

@@ -54,7 +54,7 @@ return response()->with(['meta' => ['saved' => true]])
 
 Validation errors in BladeX JSON use `errors` as a list of `{ name, messages }`. Session default-bag errors are included when `bladex.include_session_errors` is true. Failed Form Request validation on JSON requests is returned automatically in the same shape (no `->withErrors()` required). Override or add errors with `->withErrors($validator)` when validating manually. Declarative form submits dispatch `validation-failed` on each matching control with `detail.field` and `detail.messages` after operations run; use delegation on the form or `document` to render validation UI.
 
-4. On the client, prefer declarative attributes after `@bladexScripts` (for example `data-post="{{ route('items.refresh') }}"` on a button). While the request runs, BladeX sets `data-loading` on that element; for `<form data-post="...">` it also disables the form controls until the response returns. Style `[data-loading]` as needed. Operations apply automatically when the response has `X-BladeX: true`, regardless of HTTP status. `refresh` and `replace` morph server HTML into the matched root by default (`bladex.dom_update`); use `replace` for legacy `outerHTML` swaps. You can still call `fetch()` manually if needed. Ensure the layout has `<meta name="csrf-token" content="{{ csrf_token() }}">` for POST requests.
+4. On the client, prefer declarative attributes after `@bladexScripts` (for example `data-fetch="{{ route('items.refresh') }}" data-method="post"` on a button). While the request runs, BladeX sets `data-loading` on that element; for `<form data-fetch="..." data-method="post">` it also disables the form controls until the response returns. Style `[data-loading]` as needed. Operations apply automatically when the response has `X-BladeX: true`, regardless of HTTP status. `refresh` and `replace` morph server HTML into the matched root by default (`bladex.dom_update`); use `replace` for legacy `outerHTML` swaps. You can still call `fetch()` manually if needed. Ensure the layout has `<meta name="csrf-token" content="{{ csrf_token() }}">` for POST requests.
 
 Ensure each mounted instance has a unique `identifier()` when multiple copies of the same component appear on one page.
 
@@ -66,7 +66,7 @@ Read before executing:
 
 ## Examples
 
-- POST endpoint returns `response()->refresh($component)`; `data-post` on a button (or `fetch(url, { method: 'POST' })`) applies operations via the fetch proxy.
+- POST endpoint returns `response()->refresh($component)`; `data-fetch` with `data-method="post"` on a button (or `fetch(url, { method: 'POST' })`) applies operations via the fetch proxy.
 
 ## Anti-patterns
 

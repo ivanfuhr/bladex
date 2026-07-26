@@ -28,7 +28,7 @@ describe('declarative actions / data-loading', () => {
         });
 
         document.body.innerHTML =
-            '<button type="button" data-post="/items">Save</button>';
+            '<button type="button" data-fetch="/items" data-method="post">Save</button>';
 
         const button = document.querySelector('button');
 
@@ -41,7 +41,7 @@ describe('declarative actions / data-loading', () => {
         fetchMock.mockResolvedValue(new Response('{}'));
 
         document.body.innerHTML =
-            '<button type="button" data-post="/items">Save</button>';
+            '<button type="button" data-fetch="/items" data-method="post">Save</button>';
 
         const button = document.querySelector('button');
 
@@ -56,7 +56,7 @@ describe('declarative actions / data-loading', () => {
         fetchMock.mockRejectedValue(new Error('network'));
 
         document.body.innerHTML =
-            '<button type="button" data-post="/items">Save</button>';
+            '<button type="button" data-fetch="/items" data-method="post">Save</button>';
 
         const button = document.querySelector('button');
 
@@ -73,7 +73,7 @@ describe('declarative actions / data-loading', () => {
         });
 
         document.body.innerHTML =
-            '<form data-post="/items">' +
+            '<form data-fetch="/items" data-method="post">' +
             '<input name="title" />' +
             '<button type="submit">Save</button>' +
             '</form>';
@@ -93,7 +93,7 @@ describe('declarative actions / data-loading', () => {
         fetchMock.mockResolvedValue(new Response('{}'));
 
         document.body.innerHTML =
-            '<form data-post="/items">' +
+            '<form data-fetch="/items" data-method="post">' +
             '<input name="locked" disabled />' +
             '<input name="title" />' +
             '<button type="submit">Save</button>' +

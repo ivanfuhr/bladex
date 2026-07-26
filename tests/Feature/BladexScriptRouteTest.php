@@ -18,7 +18,7 @@ it('serves bladex.js from the package without publishing assets', function () {
     expect($content)->toContain('window.Bladex')
         ->and($content)->toContain('apply')
         ->and($content)->toContain('installFetchProxy')
-        ->and($content)->toContain('data-post')
+        ->and($content)->toContain('data-fetch')
         ->and($content)->toContain('bootDeclarativeActions')
         ->and($content)->toContain('closest');
 });
