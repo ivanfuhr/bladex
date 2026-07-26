@@ -19,6 +19,8 @@ export function mergeRequestInit(init) {
         headers.set('Accept', 'application/json');
     }
 
+    headers.set('X-BladeX-Request', 'true');
+
     if (isMutationMethod(options.method) && !headers.has('X-CSRF-TOKEN')) {
         const token = csrfToken();
 

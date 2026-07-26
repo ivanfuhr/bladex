@@ -149,7 +149,15 @@ return bladex()
         ->append(new TodoList, new TodoEmptyState));
 ```
 
-The response is JSON with an `operations` array and an `X-BladeX: true` header.
+The response is JSON with an `operations` array and an `X-BladeX: true` header. When validation errors are present, the payload may also include an `errors` list (`[{ "name": "field", "messages": ["..."] }]`) from the session default bag and/or failed validation (see `include_session_errors` in config).
+
+```php
+return bladex()
+    ->refresh(new OrderForm($order))
+    ->unprocessableEntity();
+```
+
+**Note:** `->withErrors()` is optional — failed Form Requests on JSON requests are handled automatically.
 
 ### HTTP status and response customization
 
@@ -174,7 +182,15 @@ return bladex()
         ->cookie('flash', 'saved', 60));
 ```
 
-The JSON body stays `{ "operations": [...] }`. The fetch proxy applies operations whenever `X-BladeX: true` is present, even if the status is not 2xx — your JavaScript can still branch on `response.ok` for validation or error handling.
+The JSON body stays `{ "operations": [...] }` and may include validation data when applicable:
+
+- `errors` — list of `{ "name": "title", "messages": ["The message."] }`
+
+The fetch proxy applies operations whenever `X-BladeX: true` is present, even if the status is not 2xx — your JavaScript can still branch on `response.ok` for validation or error handling.
+
+For declarative `<form data-post|data-put|...>` requests, BladeX matches each `errors` entry to form controls by `name`, then sets `data-error-field` (field key), `data-error` (first message), and `aria-invalid="true"`. Successful responses (`response.ok`) clear those attributes on that form.
+
+Failed **Form Request** validation on JSON / BladeX requests is converted automatically to the same payload shape (`operations: []`, `errors`, `X-BladeX: true`) — you do not need `->withErrors()` in the controller. Disable with `bladex.treat_json_validation_as_bladex` or use non-JSON requests for Laravel's default validation JSON.
 
 ### Automatic `fetch` handling
 

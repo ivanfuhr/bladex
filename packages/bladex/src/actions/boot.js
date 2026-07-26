@@ -6,6 +6,14 @@ import {
     shouldPreventDefault,
     ACTION_SELECTOR,
 } from './methods.js';
+import {
+    clearFormFieldErrors,
+    formFromTriggerElement,
+} from '../forms/errors.js';
+import {
+    clearPendingFormContext,
+    setPendingFormContext,
+} from '../forms/context.js';
 import { fetch } from '../fetch/proxy.js';
 
 export const DECLARATIVE_EVENT_TYPES = [
@@ -103,13 +111,30 @@ function performRequest(triggerElement, request) {
         init.body = body;
     }
 
+    const form = formFromTriggerElement(triggerElement);
+
+    setPendingFormContext({
+        form: form,
+        clearOnSuccess: true,
+    });
+
+    if (form !== null) {
+        clearFormFieldErrors(form);
+    }
+
     inFlightElements.add(triggerElement);
     setDeclarativeLoadingState(triggerElement, true);
 
-    return fetch(request.url, init).finally(function () {
-        inFlightElements.delete(triggerElement);
-        setDeclarativeLoadingState(triggerElement, false);
-    });
+    return fetch(request.url, init)
+        .catch(function (error) {
+            clearPendingFormContext();
+
+            throw error;
+        })
+        .finally(function () {
+            inFlightElements.delete(triggerElement);
+            setDeclarativeLoadingState(triggerElement, false);
+        });
 }
 
 function runTrigger(triggerElement, trigger, event) {

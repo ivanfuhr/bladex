@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\ViewErrorBag;
 use Ivanfuhr\BladeX\BladeX;
 use Ivanfuhr\BladeX\Component;
 use Ivanfuhr\BladeX\Support\ComponentRenderer;
@@ -398,4 +400,105 @@ it('returns append operations from an http route', function () {
             'operations.0.html',
             '<li data-component-identifier="demo.item">Item</li>',
         );
+});
+
+it('includes explicit validation errors in the json payload', function () {
+    $jsonResponse = bladex()
+        ->withErrors(['title' => ['The title field is required.']])
+        ->toResponse(request());
+
+    expect($jsonResponse->getData(true))->toMatchArray([
+        'errors' => [
+            [
+                'name' => 'title',
+                'messages' => ['The title field is required.'],
+            ],
+        ],
+    ]);
+});
+
+it('omits the errors key when there are no validation errors', function () {
+    $jsonResponse = bladex()->toResponse(request());
+
+    expect($jsonResponse->getData(true))->not->toHaveKey('errors');
+});
+
+it('merges session default bag errors into the json payload', function () {
+    $bag = new ViewErrorBag;
+    $bag->put('default', new MessageBag([
+        'email' => ['The email field is required.'],
+    ]));
+
+    session()->flash('errors', $bag);
+
+    $jsonResponse = bladex()->toResponse(request());
+
+    expect($jsonResponse->getData(true)['errors'])->toBe([
+        [
+            'name' => 'email',
+            'messages' => ['The email field is required.'],
+        ],
+    ]);
+});
+
+it('lets builder errors override session errors for the same field', function () {
+    $bag = new ViewErrorBag;
+    $bag->put('default', new MessageBag([
+        'title' => ['From session'],
+    ]));
+
+    session()->flash('errors', $bag);
+
+    $jsonResponse = bladex()
+        ->withErrors(['title' => ['From builder']])
+        ->toResponse(request());
+
+    expect($jsonResponse->getData(true)['errors'])->toBe([
+        [
+            'name' => 'title',
+            'messages' => ['From builder'],
+        ],
+    ]);
+});
+
+it('includes session errors when withSessionErrors is chained and config is disabled', function () {
+    config(['bladex.include_session_errors' => false]);
+
+    $bag = new ViewErrorBag;
+    $bag->put('default', new MessageBag([
+        'title' => ['Required'],
+    ]));
+
+    session()->flash('errors', $bag);
+
+    $jsonResponse = bladex()
+        ->withSessionErrors()
+        ->toResponse(request());
+
+    expect($jsonResponse->getData(true)['errors'])->toBe([
+        [
+            'name' => 'title',
+            'messages' => ['Required'],
+        ],
+    ]);
+});
+
+it('keeps bladeX headers and operations when errors are present', function () {
+    $component = makeTestComponent('form', '<form></form>');
+
+    $jsonResponse = bladex()
+        ->refresh($component)
+        ->withErrors(['title' => ['Required']])
+        ->unprocessableEntity()
+        ->toResponse(request());
+
+    expect($jsonResponse->getStatusCode())->toBe(422)
+        ->and($jsonResponse->headers->get('X-BladeX'))->toBe('true')
+        ->and($jsonResponse->getData(true)['operations'])->toHaveCount(1)
+        ->and($jsonResponse->getData(true)['errors'])->toBe([
+            [
+                'name' => 'title',
+                'messages' => ['Required'],
+            ],
+        ]);
 });

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { isBladexResponse } from '../../src/fetch/proxy.js';
 import { mergeRequestInit } from '../../src/fetch/request.js';
+import { isBladexResponse } from '../../src/fetch/proxy.js';
 
 describe('fetch/request', () => {
     afterEach(() => {

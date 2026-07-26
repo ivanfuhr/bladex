@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Ivanfuhr\BladeX;
 
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\ServiceProvider;
 use Ivanfuhr\BladeX\Console\Commands\BladeXCommand;
 use Ivanfuhr\BladeX\Support\ComponentRenderer;
 use Ivanfuhr\BladeX\Support\FrontendAssets;
+use Ivanfuhr\BladeX\Support\RegistersValidationExceptionRendering;
 use Ivanfuhr\BladeX\Support\RootElementAttributeInjector;
 use Ivanfuhr\BladeX\Support\RootElementValidator;
 
@@ -46,10 +48,17 @@ class BladeXServiceProvider extends ServiceProvider
 
         $this->app->make(FrontendAssets::class)->boot();
 
-        if (! $this->app->runningInConsole()) {
-            return;
-        }
+        $this->app->afterResolving(ExceptionHandler::class, function (ExceptionHandler $handler): void {
+            (new RegistersValidationExceptionRendering)->register($handler);
+        });
 
+        if ($this->app->runningInConsole()) {
+            $this->registerPublishing();
+        }
+    }
+
+    protected function registerPublishing(): void
+    {
         $this->publishes([
             __DIR__.'/../config/bladex.php' => config_path('bladex.php'),
         ], ['bladex', 'bladex-config']);

@@ -1,33 +1,21 @@
-import { apply } from '../operations/index.js';
 import { mergeRequestInit } from './request.js';
+import { isBladexResponse } from './bladex-response.js';
+import { processBladexResponse } from '../response.js';
 
 const nativeFetch = window.fetch.bind(window);
 
-export function isBladexResponse(response) {
-    return response.headers.get('X-BladeX') === 'true';
-}
+export { isBladexResponse } from './bladex-response.js';
 
+/**
+ * @param {Response} response
+ */
 export function applyOperationsFromResponse(response) {
-    if (!isBladexResponse(response)) {
-        return Promise.resolve(false);
-    }
-
-    return response
-        .clone()
-        .json()
-        .then(function (payload) {
-            return apply(payload);
-        })
-        .catch(function (error) {
-            console.error('[Bladex] Failed to apply operations.', error);
-
-            return false;
-        });
+    return processBladexResponse(response);
 }
 
 export function fetch(input, init) {
     return nativeFetch(input, mergeRequestInit(init)).then(function (response) {
-        return applyOperationsFromResponse(response).then(function () {
+        return processBladexResponse(response).then(function () {
             return response;
         });
     });

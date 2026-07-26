@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Ivanfuhr\BladeX;
 
 use Closure;
+use Illuminate\Contracts\Support\MessageProvider;
 use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Traits\Conditionable;
+use Illuminate\Validation\ValidationException;
 use Ivanfuhr\BladeX\Operations\AppendOperation;
 use Ivanfuhr\BladeX\Operations\Operation;
 use Ivanfuhr\BladeX\Operations\PrependOperation;
@@ -16,6 +19,7 @@ use Ivanfuhr\BladeX\Operations\RefreshOperation;
 use Ivanfuhr\BladeX\Operations\RemoveOperation;
 use Ivanfuhr\BladeX\Operations\ReplaceOperation;
 use Ivanfuhr\BladeX\Support\ComponentRenderer;
+use Ivanfuhr\BladeX\Support\ErrorPayload;
 use Symfony\Component\HttpFoundation\Response;
 
 class BladeX implements Responsable
@@ -33,6 +37,13 @@ class BladeX implements Responsable
      * @var list<Closure(JsonResponse): JsonResponse>
      */
     private array $responseCustomizers = [];
+
+    /**
+     * @var array<string, list<string>>
+     */
+    private array $errors = [];
+
+    private bool $includeSessionErrors = false;
 
     public function __construct(
         private readonly ComponentRenderer $componentRenderer,
@@ -167,6 +178,49 @@ class BladeX implements Responsable
     }
 
     /**
+     * @param  MessageProvider|array<string, mixed>|Validator|ValidationException  $errors
+     */
+    public function withErrors(mixed $errors): self
+    {
+        $this->errors = ErrorPayload::merge(
+            $this->errors,
+            ErrorPayload::normalize($errors),
+        );
+
+        return $this;
+    }
+
+    public function withSessionErrors(): self
+    {
+        $this->includeSessionErrors = true;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    public function resolvedErrors(): array
+    {
+        $errors = [];
+
+        if ($this->shouldIncludeSessionErrors()) {
+            $errors = ErrorPayload::merge($errors, ErrorPayload::fromSessionDefaultBag());
+        }
+
+        return ErrorPayload::merge($errors, $this->errors);
+    }
+
+    private function shouldIncludeSessionErrors(): bool
+    {
+        if ($this->includeSessionErrors) {
+            return true;
+        }
+
+        return (bool) config('bladex.include_session_errors', true);
+    }
+
+    /**
      * @return list<Operation>
      */
     public function operations(): array
@@ -187,11 +241,19 @@ class BladeX implements Responsable
 
     public function toResponse($request): JsonResponse
     {
+        $payload = [
+            'operations' => $this->toOperationArray(),
+        ];
+
+        $errors = $this->resolvedErrors();
+
+        if ($errors !== []) {
+            ErrorPayload::appendToPayload($payload, $errors);
+        }
+
         $response = response()
             ->json(
-                [
-                    'operations' => $this->toOperationArray(),
-                ],
+                $payload,
                 $this->status,
             )
             ->header('X-BladeX', 'true');
