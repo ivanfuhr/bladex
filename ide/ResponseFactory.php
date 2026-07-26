@@ -10,6 +10,7 @@ declare(strict_types=1);
  *
  * PHPStorm: Settings → PHP → Include Path → add `vendor/ivanfuhr/bladex/ide`.
  */
+
 namespace Illuminate\Contracts\Routing;
 
 use Ivanfuhr\BladeX\BladeXResponseBuilder;
@@ -25,6 +26,4 @@ use Ivanfuhr\BladeX\Component;
  * @method BladeXResponseBuilder prepend(Component $into, Component $content)
  * @method BladeXResponseBuilder navigate(string $url)
  */
-interface ResponseFactory
-{
-}
+interface ResponseFactory {}
