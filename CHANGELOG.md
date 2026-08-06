@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/ivanfuhr/bladex/compare/v0.1.0...1.x)
 
+### Fixed
+
+- Ship `packages/bladex/dist/bladex.js` in the Composer package so `@bladexScripts` works from Packagist without a local `npm run build`.
+
 ### Changed
 
 - **Breaking:** Declarative form validation no longer sets `data-error` / `data-error-field` on controls. BladeX dispatches `validation-failed` and `validation-cleared` on each form control instead. Public JS API: `Bladex.dispatchValidationFailed`, `Bladex.dispatchValidationCleared`, `Bladex.normalizeErrors` (removed `applyFormErrors` / `clearFormFieldErrors`).
